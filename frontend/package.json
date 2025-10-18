@@ -1,0 +1,21 @@
+{
+  "name": "obs-styla-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.4.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.4.2",
+    "@types/react": "^18.2.21",
+    "@types/react-dom": "^18.2.7",
+    "@types/axios": "^0.14.0"
+  }
+}
