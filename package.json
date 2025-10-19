@@ -1,0 +1,11 @@
+{
+  "name": "obs-styla",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"pnpm --prefix frontend dev\" \"pnpm --prefix backend dev\"",
+    "install-all": "pnpm install && (cd frontend && pnpm install) && (cd backend && pnpm install)"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

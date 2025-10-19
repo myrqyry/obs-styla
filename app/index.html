@@ -1,0 +1,2627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS Studio Theme Creator</title>
+    <style>
+        :root {
+            /* Primitive Color Tokens */
+            --color-white: rgba(255, 255, 255, 1);
+            --color-black: rgba(0, 0, 0, 1);
+            --color-cream-50: rgba(252, 252, 249, 1);
+            --color-cream-100: rgba(255, 255, 253, 1);
+            --color-gray-200: rgba(245, 245, 245, 1);
+            --color-gray-300: rgba(167, 169, 169, 1);
+            --color-gray-400: rgba(119, 124, 124, 1);
+            --color-slate-500: rgba(98, 108, 113, 1);
+            --color-brown-600: rgba(94, 82, 64, 1);
+            --color-charcoal-700: rgba(31, 33, 33, 1);
+            --color-charcoal-800: rgba(38, 40, 40, 1);
+            --color-slate-900: rgba(19, 52, 59, 1);
+            --color-teal-300: rgba(50, 184, 198, 1);
+            --color-teal-400: rgba(45, 166, 178, 1);
+            --color-teal-500: rgba(33, 128, 141, 1);
+            --color-teal-600: rgba(29, 116, 128, 1);
+            --color-teal-700: rgba(26, 104, 115, 1);
+            --color-teal-800: rgba(41, 150, 161, 1);
+            --color-red-400: rgba(255, 84, 89, 1);
+            --color-red-500: rgba(192, 21, 47, 1);
+            --color-orange-400: rgba(230, 129, 97, 1);
+            --color-orange-500: rgba(168, 75, 47, 1);
+        
+            /* RGB versions for opacity control */
+            --color-brown-600-rgb: 94, 82, 64;
+            --color-teal-500-rgb: 33, 128, 141;
+            --color-slate-900-rgb: 19, 52, 59;
+            --color-slate-500-rgb: 98, 108, 113;
+            --color-red-500-rgb: 192, 21, 47;
+            --color-red-400-rgb: 255, 84, 89;
+            --color-orange-500-rgb: 168, 75, 47;
+            --color-orange-400-rgb: 230, 129, 97;
+        
+            /* Background color tokens (Light Mode) */
+            --color-bg-1: rgba(59, 130, 246, 0.08);
+            --color-bg-2: rgba(245, 158, 11, 0.08);
+            --color-bg-3: rgba(34, 197, 94, 0.08);
+            --color-bg-4: rgba(239, 68, 68, 0.08);
+            --color-bg-5: rgba(147, 51, 234, 0.08);
+            --color-bg-6: rgba(249, 115, 22, 0.08);
+            --color-bg-7: rgba(236, 72, 153, 0.08);
+            --color-bg-8: rgba(6, 182, 212, 0.08);
+        
+            /* Semantic Color Tokens (Light Mode) */
+            --color-background: var(--color-cream-50);
+            --color-surface: var(--color-cream-100);
+            --color-text: var(--color-slate-900);
+            --color-text-secondary: var(--color-slate-500);
+            --color-primary: var(--color-teal-500);
+            --color-primary-hover: var(--color-teal-600);
+            --color-primary-active: var(--color-teal-700);
+            --color-secondary: rgba(var(--color-brown-600-rgb), 0.12);
+            --color-secondary-hover: rgba(var(--color-brown-600-rgb), 0.2);
+            --color-secondary-active: rgba(var(--color-brown-600-rgb), 0.25);
+            --color-border: rgba(var(--color-brown-600-rgb), 0.2);
+            --color-btn-primary-text: var(--color-cream-50);
+            --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
+            --color-card-border-inner: rgba(var(--color-brown-600-rgb), 0.12);
+            --color-error: var(--color-red-500);
+            --color-success: var(--color-teal-500);
+            --color-warning: var(--color-orange-500);
+            --color-info: var(--color-slate-500);
+            --color-focus-ring: rgba(var(--color-teal-500-rgb), 0.4);
+            --color-select-caret: rgba(var(--color-slate-900-rgb), 0.8);
+        
+            /* Common style patterns */
+            --focus-ring: 0 0 0 3px var(--color-focus-ring);
+            --focus-outline: 2px solid var(--color-primary);
+            --status-bg-opacity: 0.15;
+            --status-border-opacity: 0.25;
+            --select-caret-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            --select-caret-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        
+            /* RGB versions for opacity control */
+            --color-success-rgb: 33, 128, 141;
+            --color-error-rgb: 192, 21, 47;
+            --color-warning-rgb: 168, 75, 47;
+            --color-info-rgb: 98, 108, 113;
+        
+            /* Typography */
+            --font-family-base: "FKGroteskNeue", "Geist", "Inter", -apple-system,
+              BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-family-mono: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo,
+              Monaco, Consolas, monospace;
+            --font-size-xs: 11px;
+            --font-size-sm: 12px;
+            --font-size-base: 14px;
+            --font-size-md: 14px;
+            --font-size-lg: 16px;
+            --font-size-xl: 18px;
+            --font-size-2xl: 20px;
+            --font-size-3xl: 24px;
+            --font-size-4xl: 30px;
+            --font-weight-normal: 400;
+            --font-weight-medium: 500;
+            --font-weight-semibold: 550;
+            --font-weight-bold: 600;
+            --line-height-tight: 1.2;
+            --line-height-normal: 1.5;
+            --letter-spacing-tight: -0.01em;
+        
+            /* Spacing */
+            --space-0: 0;
+            --space-1: 1px;
+            --space-2: 2px;
+            --space-4: 4px;
+            --space-6: 6px;
+            --space-8: 8px;
+            --space-10: 10px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-20: 20px;
+            --space-24: 24px;
+            --space-32: 32px;
+        
+            /* Border Radius */
+            --radius-sm: 6px;
+            --radius-base: 8px;
+            --radius-md: 10px;
+            --radius-lg: 12px;
+            --radius-full: 9999px;
+        
+            /* Shadows */
+            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04),
+              0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04),
+              0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.15),
+              inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+        
+            /* Animation */
+            --duration-fast: 150ms;
+            --duration-normal: 250ms;
+            --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+        
+            /* Layout */
+            --container-sm: 640px;
+            --container-md: 768px;
+            --container-lg: 1024px;
+            --container-xl: 1280px;
+        }
+        
+        /* Dark mode colors */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                /* RGB versions for opacity control (Dark Mode) */
+                --color-gray-400-rgb: 119, 124, 124;
+                --color-teal-300-rgb: 50, 184, 198;
+                --color-gray-300-rgb: 167, 169, 169;
+                --color-gray-200-rgb: 245, 245, 245;
+            
+                /* Background color tokens (Dark Mode) */
+                --color-bg-1: rgba(29, 78, 216, 0.15);
+                --color-bg-2: rgba(180, 83, 9, 0.15);
+                --color-bg-3: rgba(21, 128, 61, 0.15);
+                --color-bg-4: rgba(185, 28, 28, 0.15);
+                --color-bg-5: rgba(107, 33, 168, 0.15);
+                --color-bg-6: rgba(194, 65, 12, 0.15);
+                --color-bg-7: rgba(190, 24, 93, 0.15);
+                --color-bg-8: rgba(8, 145, 178, 0.15);
+            
+                /* Semantic Color Tokens (Dark Mode) */
+                --color-background: var(--color-charcoal-700);
+                --color-surface: var(--color-charcoal-800);
+                --color-text: var(--color-gray-200);
+                --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.7);
+                --color-primary: var(--color-teal-300);
+                --color-primary-hover: var(--color-teal-400);
+                --color-primary-active: var(--color-teal-800);
+                --color-secondary: rgba(var(--color-gray-400-rgb), 0.15);
+                --color-secondary-hover: rgba(var(--color-gray-400-rgb), 0.25);
+                --color-secondary-active: rgba(var(--color-gray-400-rgb), 0.3);
+                --color-border: rgba(var(--color-gray-400-rgb), 0.3);
+                --color-error: var(--color-red-400);
+                --color-success: var(--color-teal-300);
+                --color-warning: var(--color-orange-400);
+                --color-info: var(--color-gray-300);
+                --color-focus-ring: rgba(var(--color-teal-300-rgb), 0.4);
+                --color-btn-primary-text: var(--color-slate-900);
+                --color-card-border: rgba(var(--color-gray-400-rgb), 0.2);
+                --color-card-border-inner: rgba(var(--color-gray-400-rgb), 0.15);
+                --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                  inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+                --button-border-secondary: rgba(var(--color-gray-400-rgb), 0.2);
+                --color-border-secondary: rgba(var(--color-gray-400-rgb), 0.2);
+                --color-select-caret: rgba(var(--color-gray-200-rgb), 0.8);
+            
+                /* RGB versions for dark mode */
+                --color-success-rgb: var(--color-teal-300-rgb);
+                --color-error-rgb: var(--color-red-400-rgb);
+                --color-warning-rgb: var(--color-orange-400-rgb);
+                --color-info-rgb: var(--color-gray-300-rgb);
+            }
+        }
+        
+        /* Data attribute for manual theme switching */
+        [data-color-scheme="dark"] {
+            /* RGB versions for opacity control (dark mode) */
+            --color-gray-400-rgb: 119, 124, 124;
+            --color-teal-300-rgb: 50, 184, 198;
+            --color-gray-300-rgb: 167, 169, 169;
+            --color-gray-200-rgb: 245, 245, 245;
+        
+            /* Colorful background palette - Dark Mode */
+            --color-bg-1: rgba(29, 78, 216, 0.15);
+            --color-bg-2: rgba(180, 83, 9, 0.15);
+            --color-bg-3: rgba(21, 128, 61, 0.15);
+            --color-bg-4: rgba(185, 28, 28, 0.15);
+            --color-bg-5: rgba(107, 33, 168, 0.15);
+            --color-bg-6: rgba(194, 65, 12, 0.15);
+            --color-bg-7: rgba(190, 24, 93, 0.15);
+            --color-bg-8: rgba(8, 145, 178, 0.15);
+        
+            /* Semantic Color Tokens (Dark Mode) */
+            --color-background: var(--color-charcoal-700);
+            --color-surface: var(--color-charcoal-800);
+            --color-text: var(--color-gray-200);
+            --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.7);
+            --color-primary: var(--color-teal-300);
+            --color-primary-hover: var(--color-teal-400);
+            --color-primary-active: var(--color-teal-800);
+            --color-secondary: rgba(var(--color-gray-400-rgb), 0.15);
+            --color-secondary-hover: rgba(var(--color-gray-400-rgb), 0.25);
+            --color-secondary-active: rgba(var(--color-gray-400-rgb), 0.3);
+            --color-border: rgba(var(--color-gray-400-rgb), 0.3);
+            --color-error: var(--color-red-400);
+            --color-success: var(--color-teal-300);
+            --color-warning: var(--color-orange-400);
+            --color-info: var(--color-gray-300);
+            --color-focus-ring: rgba(var(--color-teal-300-rgb), 0.4);
+            --color-btn-primary-text: var(--color-slate-900);
+            --color-card-border: rgba(var(--color-gray-400-rgb), 0.15);
+            --color-card-border-inner: rgba(var(--color-gray-400-rgb), 0.15);
+            --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.1),
+              inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+            --color-border-secondary: rgba(var(--color-gray-400-rgb), 0.2);
+            --color-select-caret: rgba(var(--color-gray-200-rgb), 0.8);
+        
+            /* RGB versions for dark mode */
+            --color-success-rgb: var(--color-teal-300-rgb);
+            --color-error-rgb: var(--color-red-400-rgb);
+            --color-warning-rgb: var(--color-orange-400-rgb);
+            --color-info-rgb: var(--color-gray-300-rgb);
+        }
+        
+        [data-color-scheme="light"] {
+            /* RGB versions for opacity control (light mode) */
+            --color-brown-600-rgb: 94, 82, 64;
+            --color-teal-500-rgb: 33, 128, 141;
+            --color-slate-900-rgb: 19, 52, 59;
+        
+            /* Semantic Color Tokens (Light Mode) */
+            --color-background: var(--color-cream-50);
+            --color-surface: var(--color-cream-100);
+            --color-text: var(--color-slate-900);
+            --color-text-secondary: var(--color-slate-500);
+            --color-primary: var(--color-teal-500);
+            --color-primary-hover: var(--color-teal-600);
+            --color-primary-active: var(--color-teal-700);
+            --color-secondary: rgba(var(--color-brown-600-rgb), 0.12);
+            --color-secondary-hover: rgba(var(--color-brown-600-rgb), 0.2);
+            --color-secondary-active: rgba(var(--color-brown-600-rgb), 0.25);
+            --color-border: rgba(var(--color-brown-600-rgb), 0.2);
+            --color-btn-primary-text: var(--color-cream-50);
+            --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
+            --color-card-border-inner: rgba(var(--color-brown-600-rgb), 0.12);
+            --color-error: var(--color-red-500);
+            --color-success: var(--color-teal-500);
+            --color-warning: var(--color-orange-500);
+            --color-info: var(--color-slate-500);
+            --color-focus-ring: rgba(var(--color-teal-500-rgb), 0.4);
+        
+            /* RGB versions for light mode */
+            --color-success-rgb: var(--color-teal-500-rgb);
+            --color-error-rgb: var(--color-red-500-rgb);
+            --color-warning-rgb: var(--color-orange-500-rgb);
+            --color-info-rgb: var(--color-slate-500-rgb);
+        }
+        
+        /* Base styles */
+        html {
+            font-size: var(--font-size-base);
+            font-family: var(--font-family-base);
+            line-height: var(--line-height-normal);
+            color: var(--color-text);
+            background-color: var(--color-background);
+            -webkit-font-smoothing: antialiased;
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        *,
+        *::before,
+        *::after {
+            box-sizing: inherit;
+        }
+        
+        /* Typography */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            margin: 0;
+            font-weight: var(--font-weight-semibold);
+            line-height: var(--line-height-tight);
+            color: var(--color-text);
+            letter-spacing: var(--letter-spacing-tight);
+        }
+        
+        h1 {
+            font-size: var(--font-size-4xl);
+        }
+        h2 {
+            font-size: var(--font-size-3xl);
+        }
+        h3 {
+            font-size: var(--font-size-2xl);
+        }
+        h4 {
+            font-size: var(--font-size-xl);
+        }
+        h5 {
+            font-size: var(--font-size-lg);
+        }
+        h6 {
+            font-size: var(--font-size-md);
+        }
+        
+        p {
+            margin: 0 0 var(--space-16) 0;
+        }
+        
+        a {
+            color: var(--color-primary);
+            text-decoration: none;
+            transition: color var(--duration-fast) var(--ease-standard);
+        }
+        
+        a:hover {
+            color: var(--color-primary-hover);
+        }
+        
+        code,
+        pre {
+            font-family: var(--font-family-mono);
+            font-size: calc(var(--font-size-base) * 0.95);
+            background-color: var(--color-secondary);
+            border-radius: var(--radius-sm);
+        }
+        
+        code {
+            padding: var(--space-1) var(--space-4);
+        }
+        
+        pre {
+            padding: var(--space-16);
+            margin: var(--space-16) 0;
+            overflow: auto;
+            border: 1px solid var(--color-border);
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-8) var(--space-16);
+            border-radius: var(--radius-base);
+            font-size: var(--font-size-base);
+            font-weight: 500;
+            line-height: 1.5;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-standard);
+            border: none;
+            text-decoration: none;
+            position: relative;
+        }
+        
+        .btn:focus-visible {
+            outline: none;
+            box-shadow: var(--focus-ring);
+        }
+        
+        .btn--primary {
+            background: var(--color-primary);
+            color: var(--color-btn-primary-text);
+        }
+        
+        .btn--primary:hover {
+            background: var(--color-primary-hover);
+        }
+        
+        .btn--primary:active {
+            background: var(--color-primary-active);
+        }
+        
+        .btn--secondary {
+            background: var(--color-secondary);
+            color: var(--color-text);
+        }
+        
+        .btn--secondary:hover {
+            background: var(--color-secondary-hover);
+        }
+        
+        .btn--secondary:active {
+            background: var(--color-secondary-active);
+        }
+        
+        .btn--outline {
+            background: transparent;
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+        }
+        
+        .btn--outline:hover {
+            background: var(--color-secondary);
+        }
+        
+        .btn--sm {
+            padding: var(--space-4) var(--space-12);
+            font-size: var(--font-size-sm);
+            border-radius: var(--radius-sm);
+        }
+        
+        .btn--lg {
+            padding: var(--space-10) var(--space-20);
+            font-size: var(--font-size-lg);
+            border-radius: var(--radius-md);
+        }
+        
+        .btn--full-width {
+            width: 100%;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Form elements */
+        .form-control {
+            display: block;
+            width: 100%;
+            padding: var(--space-8) var(--space-12);
+            font-size: var(--font-size-md);
+            line-height: 1.5;
+            color: var(--color-text);
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            transition: border-color var(--duration-fast) var(--ease-standard),
+              box-shadow var(--duration-fast) var(--ease-standard);
+        }
+        
+        textarea.form-control {
+            font-family: var(--font-family-base);
+            font-size: var(--font-size-base);
+        }
+        
+        select.form-control {
+            padding: var(--space-8) var(--space-12);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: var(--select-caret-light);
+            background-repeat: no-repeat;
+            background-position: right var(--space-12) center;
+            background-size: 16px;
+            padding-right: var(--space-32);
+        }
+        
+        /* Add a dark mode specific caret */
+        @media (prefers-color-scheme: dark) {
+            select.form-control {
+                background-image: var(--select-caret-dark);
+            }
+        }
+        
+        /* Also handle data-color-scheme */
+        [data-color-scheme="dark"] select.form-control {
+            background-image: var(--select-caret-dark);
+        }
+        
+        [data-color-scheme="light"] select.form-control {
+            background-image: var(--select-caret-light);
+        }
+        
+        .form-control:focus {
+            border-color: var(--color-primary);
+            outline: var(--focus-outline);
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: var(--space-8);
+            font-weight: var(--font-weight-medium);
+            font-size: var(--font-size-sm);
+        }
+        
+        .form-group {
+            margin-bottom: var(--space-16);
+        }
+        
+        /* Card component */
+        .card {
+            background-color: var(--color-surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-card-border);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: box-shadow var(--duration-normal) var(--ease-standard);
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+        
+        .card__body {
+            padding: var(--space-16);
+        }
+        
+        .card__header,
+        .card__footer {
+            padding: var(--space-16);
+            border-bottom: 1px solid var(--color-card-border-inner);
+        }
+        
+        /* Status indicators - simplified with CSS variables */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--space-6) var(--space-12);
+            border-radius: var(--radius-full);
+            font-weight: var(--font-weight-medium);
+            font-size: var(--font-size-sm);
+        }
+        
+        .status--success {
+            background-color: rgba(
+              var(--color-success-rgb, 33, 128, 141),
+              var(--status-bg-opacity)
+            );
+            color: var(--color-success);
+            border: 1px solid
+              rgba(var(--color-success-rgb, 33, 128, 141), var(--status-border-opacity));
+        }
+        
+        .status--error {
+            background-color: rgba(
+              var(--color-error-rgb, 192, 21, 47),
+              var(--status-bg-opacity)
+            );
+            color: var(--color-error);
+            border: 1px solid
+              rgba(var(--color-error-rgb, 192, 21, 47), var(--status-border-opacity));
+        }
+        
+        .status--warning {
+            background-color: rgba(
+              var(--color-warning-rgb, 168, 75, 47),
+              var(--status-bg-opacity)
+            );
+            color: var(--color-warning);
+            border: 1px solid
+              rgba(var(--color-warning-rgb, 168, 75, 47), var(--status-border-opacity));
+        }
+        
+        .status--info {
+            background-color: rgba(
+              var(--color-info-rgb, 98, 108, 113),
+              var(--status-bg-opacity)
+            );
+            color: var(--color-info);
+            border: 1px solid
+              rgba(var(--color-info-rgb, 98, 108, 113), var(--status-border-opacity));
+        }
+        
+        /* Container layout */
+        .container {
+            width: 100%;
+            margin-right: auto;
+            margin-left: auto;
+            padding-right: var(--space-16);
+            padding-left: var(--space-16);
+        }
+        
+        @media (min-width: 640px) {
+            .container {
+                max-width: var(--container-sm);
+            }
+        }
+        @media (min-width: 768px) {
+            .container {
+                max-width: var(--container-md);
+            }
+        }
+        @media (min-width: 1024px) {
+            .container {
+                max-width: var(--container-lg);
+            }
+        }
+        @media (min-width: 1280px) {
+            .container {
+                max-width: var(--container-xl);
+            }
+        }
+        
+        /* Utility classes */
+        .flex {
+            display: flex;
+        }
+        .flex-col {
+            flex-direction: column;
+        }
+        .items-center {
+            align-items: center;
+        }
+        .justify-center {
+            justify-content: center;
+        }
+        .justify-between {
+            justify-content: space-between;
+        }
+        .gap-4 {
+            gap: var(--space-4);
+        }
+        .gap-8 {
+            gap: var(--space-8);
+        }
+        .gap-16 {
+            gap: var(--space-16);
+        }
+        
+        .m-0 {
+            margin: 0;
+        }
+        .mt-8 {
+            margin-top: var(--space-8);
+        }
+        .mb-8 {
+            margin-bottom: var(--space-8);
+        }
+        .mx-8 {
+            margin-left: var(--space-8);
+            margin-right: var(--space-8);
+        }
+        .my-8 {
+            margin-top: var(--space-8);
+            margin-bottom: var(--space-8);
+        }
+        
+        .p-0 {
+            padding: 0;
+        }
+        .py-8 {
+            padding-top: var(--space-8);
+            padding-bottom: var(--space-8);
+        }
+        .px-8 {
+            padding-left: var(--space-8);
+            padding-right: var(--space-8);
+        }
+        .py-16 {
+            padding-top: var(--space-16);
+            padding-bottom: var(--space-16);
+        }
+        .px-16 {
+            padding-left: var(--space-16);
+            padding-right: var(--space-16);
+        }
+        
+        .block {
+            display: block;
+        }
+        .hidden {
+            display: none;
+        }
+        
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+        
+        :focus-visible {
+            outline: var(--focus-outline);
+            outline-offset: 2px;
+        }
+        
+        /* Dark mode specifics */
+        [data-color-scheme="dark"] .btn--outline {
+            border: 1px solid var(--color-border-secondary);
+        }
+        
+        @font-face {
+            font-family: 'FKGroteskNeue';
+            src: url('https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2')
+              format('woff2');
+        }
+
+        /* App specific styles */
+        .app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            padding: var(--space-12) var(--space-24);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-16);
+        }
+
+        .app-title {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            margin: 0;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--space-12);
+        }
+
+        .app-body {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            overflow-y: auto;
+            padding: var(--space-16);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+        }
+
+        .customization-panel {
+            width: 400px;
+            background: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-area {
+            flex: 1;
+            padding: var(--space-24);
+            background: var(--color-background);
+            overflow: auto;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .tab {
+            padding: var(--space-12) var(--space-16);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-sm);
+            transition: all var(--duration-fast) var(--ease-standard);
+        }
+
+        .tab:hover {
+            color: var(--color-text);
+            background: var(--color-secondary);
+        }
+
+        .tab.active {
+            color: var(--color-primary);
+            border-bottom: 2px solid var(--color-primary);
+        }
+
+        .tab-content {
+            flex: 1;
+            padding: var(--space-16);
+            overflow-y: auto;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-12);
+        }
+
+        .preset-item {
+            padding: var(--space-12);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease-standard);
+        }
+
+        .preset-item:hover {
+            border-color: var(--color-primary);
+            background: var(--color-secondary);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-8);
+        }
+
+        .color-item {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+
+        .color-swatch {
+            width: 100%;
+            height: 40px;
+            border-radius: var(--radius-base);
+            border: 1px solid var(--color-border);
+            cursor: pointer;
+        }
+
+        .color-input {
+            font-size: var(--font-size-xs);
+            padding: var(--space-4);
+        }
+
+        .obs-preview {
+            background: #1e1e1e;
+            color: #ffffff;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--color-border);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .obs-titlebar {
+            background: #2d2d30;
+            padding: var(--space-8) var(--space-16);
+            font-size: var(--font-size-sm);
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .obs-menu {
+            background: #2d2d30;
+            padding: var(--space-4) var(--space-16);
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            gap: var(--space-20);
+        }
+
+        .obs-menu-item {
+            font-size: var(--font-size-sm);
+            padding: var(--space-4) var(--space-8);
+            cursor: pointer;
+        }
+
+        .obs-main {
+            display: flex;
+            height: 500px;
+        }
+
+        .obs-sidebar {
+            width: 250px;
+            background: #1e1e1e;
+            border-right: 1px solid #3e3e42;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .obs-panel {
+            flex: 1;
+            padding: var(--space-8);
+        }
+
+        .obs-panel-title {
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            margin-bottom: var(--space-8);
+            color: #cccccc;
+        }
+
+        .obs-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .obs-list-item {
+            padding: var(--space-6) var(--space-8);
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+        }
+
+        .obs-list-item:hover {
+            background: #094771;
+        }
+
+        .obs-list-item.selected {
+            background: #094771;
+            color: #ffffff;
+        }
+
+        .obs-source-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.7;
+        }
+
+        .obs-content {
+            flex: 1;
+            background: #1e1e1e;
+        }
+
+        .obs-controls {
+            background: #2d2d30;
+            padding: var(--space-12) var(--space-16);
+            border-top: 1px solid #3e3e42;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-12);
+        }
+
+        .obs-control-btn {
+            padding: var(--space-8) var(--space-16);
+            border: none;
+            border-radius: var(--radius-base);
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .obs-control-btn.record {
+            background: #b91c1c;
+            color: white;
+        }
+
+        .obs-control-btn.stream {
+            background: #7c3aed;
+            color: white;
+        }
+
+        .obs-control-btn.vcam {
+            background: #059669;
+            color: white;
+        }
+
+        .obs-control-btn.replay {
+            background: #d97706;
+            color: white;
+        }
+
+        .file-drop-zone {
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-32);
+            text-align: center;
+            background: var(--color-secondary);
+            transition: all var(--duration-fast) var(--ease-standard);
+        }
+
+        .file-drop-zone.dragover {
+            border-color: var(--color-primary);
+            background: rgba(var(--color-primary), 0.1);
+        }
+
+        .range-control {
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+        }
+
+        .range-control input[type="range"] {
+            flex: 1;
+        }
+
+        .range-value {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            min-width: 40px;
+        }
+
+        .export-options {
+            background: var(--color-surface);
+            border-top: 1px solid var(--color-border);
+            padding: var(--space-16);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .theme-name-input {
+            min-width: 200px;
+        }
+
+        .color-harmony-suggestions {
+            display: flex;
+            gap: var(--space-4);
+            margin-top: var(--space-8);
+        }
+
+        .harmony-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--color-border);
+            cursor: pointer;
+        }
+
+        .icon-upload {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-8);
+        }
+
+        .svg-editor {
+            width: 100%;
+            min-height: 200px;
+            font-family: var(--font-family-mono);
+            font-size: var(--font-size-sm);
+            resize: vertical;
+        }
+
+        .accessibility-check {
+            padding: var(--space-12);
+            border-radius: var(--radius-base);
+            margin-top: var(--space-8);
+        }
+
+        .accessibility-check.pass {
+            background: var(--color-bg-3);
+            border: 1px solid var(--color-success);
+        }
+
+        .accessibility-check.fail {
+            background: var(--color-bg-4);
+            border: 1px solid var(--color-error);
+        }
+    </style>
+</head>
+<body>
+    <!-- SVG filters for color blindness simulation -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <filter id="protanopia"><feColorMatrix type="matrix" values="0.567,0.433,0,0,0 0.558,0.442,0,0,0 0,0.242,0.758,0,0 0,0,0,1,0"/></filter>
+            <filter id="deuteranopia"><feColorMatrix type="matrix" values="0.625,0.375,0,0,0 0.7,0.3,0,0,0 0,0.3,0.7,0,0 0,0,0,1,0"/></filter>
+            <filter id="tritanopia"><feColorMatrix type="matrix" values="0.95,0.05,0,0,0 0,0.433,0.567,0,0 0,0.475,0.525,0,0 0,0,0,1,0"/></filter>
+        </defs>
+    </svg>
+    <div class="app">
+        <header class="app-header">
+            <h1 class="app-title">OBS Theme Creator</h1>
+            <div class="header-controls">
+                <input type="text" class="form-control theme-name-input" id="themeName" placeholder="Theme Name" value="My Custom Theme">
+                <button class="btn btn--outline btn--sm" id="importBtn">Import</button>
+                <button class="btn btn--primary btn--sm" id="exportBtn">Export</button>
+                <button class="btn btn--outline btn--sm" id="regenBtn">Regenerate</button>
+                <button class="btn btn--secondary btn--sm" id="darkModeToggle">🌓</button>
+            </div>
+        </header>
+
+        <div class="app-body">
+            <aside class="sidebar">
+                <div class="form-group">
+                    <label class="form-label">Theme Source</label>
+                    <select class="form-control" id="themeSource">
+                        <option value="blank">Start from Blank</option>
+                        <option value="vscode">Import VSCode Theme</option>
+                        <option value="preset">Choose Preset</option>
+                    </select>
+                </div>
+
+                <div id="presetSelection" class="form-group" style="display: none;">
+                    <label class="form-label">Popular Presets</label>
+                    <div class="preset-grid">
+                        <div class="preset-item" data-preset="catppuccin">
+                            <div style="font-weight: 500; margin-bottom: 4px;">Catppuccin</div>
+                            <div style="font-size: 12px; color: var(--color-text-secondary);">Mocha</div>
+                        </div>
+                        <div class="preset-item" data-preset="dracula">
+                            <div style="font-weight: 500; margin-bottom: 4px;">Dracula</div>
+                            <div style="font-size: 12px; color: var(--color-text-secondary);">Dark</div>
+                        </div>
+                        <div class="preset-item" data-preset="nord">
+                            <div style="font-weight: 500; margin-bottom: 4px;">Nord</div>
+                            <div style="font-size: 12px; color: var(--color-text-secondary);">Arctic</div>
+                        </div>
+                        <div class="preset-item" data-preset="material">
+                            <div style="font-weight: 500; margin-bottom: 4px;">Material</div>
+                            <div style="font-size: 12px; color: var(--color-text-secondary);">Dark</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="vscodeImport" class="form-group" style="display: none;">
+                    <label class="form-label">VSCode Theme File</label>
+                    <div class="file-drop-zone" id="vscodeDropZone">
+                        <p>Drop a .json theme file here</p>
+                        <p style="font-size: 12px; color: var(--color-text-secondary);">Or click to browse</p>
+                        <input type="file" id="vscodeFile" accept=".json" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 24px;">
+                    <h6>Quick Actions</h6>
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+                        <button class="btn btn--outline btn--sm" id="resetTheme">Reset Theme</button>
+                        <button class="btn btn--outline btn--sm" id="randomizeColors">Randomize Colors</button>
+                        <button class="btn btn--outline btn--sm" id="validateTheme">Validate Theme</button>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="main-content">
+                <div class="customization-panel">
+                    <div class="tabs">
+                        <button class="tab active" data-tab="colors">Colors</button>
+                        <button class="tab" data-tab="typography">Typography</button>
+                        <button class="tab" data-tab="layout">Layout</button>
+                        <button class="tab" data-tab="icons">Icons</button>
+                        <button class="tab" data-tab="advanced">Advanced</button>
+                    </div>
+
+                    <div class="tab-content">
+                        <!-- Colors Tab -->
+                        <div id="colorsTab" class="tab-panel">
+                            <div class="form-group">
+                                <h6>Primary Colors</h6>
+                                <div class="color-grid">
+                                    <div class="color-item">
+                                        <label class="form-label">Background</label>
+                                        <div class="color-swatch" data-color="background" style="background-color: #1e1e1e;"></div>
+                                        <input type="text" class="form-control color-input" data-color="background" value="#1e1e1e">
+                                    </div>
+                                    <div class="color-item">
+                                        <label class="form-label">Surface</label>
+                                        <div class="color-swatch" data-color="surface" style="background-color: #2d2d30;"></div>
+                                        <input type="text" class="form-control color-input" data-color="surface" value="#2d2d30">
+                                    </div>
+                                    <div class="color-item">
+                                        <label class="form-label">Text</label>
+                                        <div class="color-swatch" data-color="text" style="background-color: #ffffff;"></div>
+                                        <input type="text" class="form-control color-input" data-color="text" value="#ffffff">
+                                    </div>
+                                    <div class="color-item">
+                                        <label class="form-label">Border</label>
+                                        <div class="color-swatch" data-color="border" style="background-color: #3e3e42;"></div>
+                                        <input type="text" class="form-control color-input" data-color="border" value="#3e3e42">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <h6>Accent Colors</h6>
+                                <div class="color-grid">
+                                    <div class="color-item">
+                                        <label class="form-label">Record</label>
+                                        <div class="color-swatch" data-color="record" style="background-color: #b91c1c;"></div>
+                                        <input type="text" class="form-control color-input" data-color="record" value="#b91c1c">
+                                    </div>
+                                    <div class="color-item">
+                                        <label class="form-label">Stream</label>
+                                        <div class="color-swatch" data-color="stream" style="background-color: #7c3aed;"></div>
+                                        <input type="text" class="form-control color-input" data-color="stream" value="#7c3aed">
+                                    </div>
+                                    <div class="color-item">
+                                        <label class="form-label">VCam</label>
+                                        <div class="color-swatch" data-color="vcam" style="background-color: #059669;"></div>
+                                        <input type="text" class="form-control color-input" data-color="vcam" value="#059669">
+                                    </div>
+                                    <div class="color-item">
+                                        <label class="form-label">Replay</label>
+                                        <div class="color-swatch" data-color="replay" style="background-color: #d97706;"></div>
+                                        <input type="text" class="form-control color-input" data-color="replay" value="#d97706">
+                                    </div>
+                                </div>
+                                <div class="color-harmony-suggestions" id="harmonySuggestions"></div>
+                                <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+                                    <label style="font-size:12px; color:var(--color-text-secondary); margin-right:4px;">Simulate:</label>
+                                    <select id="colorBlindSim" class="form-control" style="width:160px;">
+                                        <option value="none">None</option>
+                                        <option value="protanopia">Protanopia</option>
+                                        <option value="deuteranopia">Deuteranopia</option>
+                                        <option value="tritanopia">Tritanopia</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <h6>Accessibility Check</h6>
+                                <div id="accessibilityCheck" class="accessibility-check">
+                                    <div>Contrast Ratio: <span id="contrastRatio">4.5:1</span></div>
+                                    <div id="wcagCompliance">WCAG AA Compliant ✓</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Typography Tab -->
+                        <div id="typographyTab" class="tab-panel" style="display: none;">
+                            <div class="form-group">
+                                <label class="form-label">Font Family</label>
+                                <select class="form-control" id="fontFamily">
+                                    <option value="Segoe UI">Segoe UI</option>
+                                    <option value="Inter">Inter</option>
+                                    <option value="Roboto">Roboto</option>
+                                    <option value="Open Sans">Open Sans</option>
+                                    <option value="Source Sans Pro">Source Sans Pro</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Font Sizes</label>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <div class="range-control">
+                                        <label style="min-width: 60px; font-size: 12px;">Small</label>
+                                        <input type="range" min="10" max="16" value="12" id="fontSizeSmall">
+                                        <span class="range-value">12px</span>
+                                    </div>
+                                    <div class="range-control">
+                                        <label style="min-width: 60px; font-size: 12px;">Base</label>
+                                        <input type="range" min="12" max="18" value="14" id="fontSizeBase">
+                                        <span class="range-value">14px</span>
+                                    </div>
+                                    <div class="range-control">
+                                        <label style="min-width: 60px; font-size: 12px;">Large</label>
+                                        <input type="range" min="14" max="22" value="16" id="fontSizeLarge">
+                                        <span class="range-value">16px</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Font Weight</label>
+                                <select class="form-control" id="fontWeight">
+                                    <option value="400">Normal (400)</option>
+                                    <option value="500">Medium (500)</option>
+                                    <option value="600">Semi-bold (600)</option>
+                                    <option value="700">Bold (700)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Layout Tab -->
+                        <div id="layoutTab" class="tab-panel" style="display: none;">
+                            <div class="form-group">
+                                <label class="form-label">Spacing Scale</label>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <div class="range-control">
+                                        <label style="min-width: 60px; font-size: 12px;">XS</label>
+                                        <input type="range" min="2" max="8" value="4" id="spacingXS">
+                                        <span class="range-value">4px</span>
+                                    </div>
+                                    <div class="range-control">
+                                        <label style="min-width: 60px; font-size: 12px;">SM</label>
+                                        <input type="range" min="4" max="12" value="8" id="spacingSM">
+                                        <span class="range-value">8px</span>
+                                    </div>
+                                    <div class="range-control">
+                                        <label style="min-width: 60px; font-size: 12px;">MD</label>
+                                        <input type="range" min="8" max="20" value="12" id="spacingMD">
+                                        <span class="range-value">12px</span>
+                                    </div>
+                                    <div class="range-control">
+                                        <label style="min-width: 60px; font-size: 12px;">LG</label>
+                                        <input type="range" min="12" max="24" value="16" id="spacingLG">
+                                        <span class="range-value">16px</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Border Radius</label>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <div class="range-control">
+                                        <label style="min-width: 60px; font-size: 12px;">Small</label>
+                                        <input type="range" min="0" max="8" value="4" id="radiusSmall">
+                                        <span class="range-value">4px</span>
+                                    </div>
+                                    <div class="range-control">
+                                        <label style="min-width: 60px; font-size: 12px;">Base</label>
+                                        <input type="range" min="4" max="12" value="6" id="radiusBase">
+                                        <span class="range-value">6px</span>
+                                    </div>
+                                    <div class="range-control">
+                                        <label style="min-width: 60px; font-size: 12px;">Large</label>
+                                        <input type="range" min="8" max="20" value="12" id="radiusLarge">
+                                        <span class="range-value">12px</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Icons Tab -->
+                        <div id="iconsTab" class="tab-panel" style="display: none;">
+                            <div class="form-group">
+                                <label class="form-label">Icon Style</label>
+                                <select class="form-control" id="iconStyle">
+                                    <option value="default">Default</option>
+                                    <option value="minimal">Minimal</option>
+                                    <option value="colorful">Colorful</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Custom SVG Icons</label>
+                                <div class="icon-upload">
+                                    <div class="file-drop-zone" id="iconDropZone">
+                                        <p>Drop SVG files here</p>
+                                        <input type="file" id="iconFiles" multiple accept=".svg" style="display: none;">
+                                    </div>
+                                    <textarea class="form-control svg-editor" id="svgEditor" placeholder="Or paste SVG code here..."></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Icon Preview</label>
+                                <div style="display: flex; gap: 16px; flex-wrap: wrap; padding: 16px; background: var(--color-secondary); border-radius: 8px;">
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                                        <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                                            <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: #b91c1c;"><circle cx="12" cy="12" r="8"/></svg>
+                                        </div>
+                                        <span style="font-size: 10px;">Record</span>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                                        <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                                            <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: #7c3aed;"><path d="M8 5v14l11-7z"/></svg>
+                                        </div>
+                                        <span style="font-size: 10px;">Stream</span>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                                        <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                                            <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: #059669;"><path d="M12 15.2c-1.25 0-2.27-.92-2.27-2.2s1.02-2.2 2.27-2.2c1.25 0 2.27.92 2.27 2.2S13.25 15.2 12 15.2zM9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z"/></svg>
+                                        </div>
+                                        <span style="font-size: 10px;">Camera</span>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                                        <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                                            <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: #d97706;"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+                                        </div>
+                                        <span style="font-size: 10px;">Mic</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Tab -->
+                        <div id="advancedTab" class="tab-panel" style="display: none;">
+                            <div class="form-group">
+                                <label class="form-label">Theme Metadata</label>
+                                <input type="text" class="form-control" id="themeId" placeholder="Theme ID (e.g., com.company.theme-name)">
+                                <input type="text" class="form-control" id="themeAuthor" placeholder="Author Name" style="margin-top: 8px;">
+                                <input type="text" class="form-control" id="themeVersion" placeholder="Version (e.g., 1.0.0)" style="margin-top: 8px;">
+                                <textarea class="form-control" id="themeDescription" placeholder="Theme description..." rows="3" style="margin-top: 8px;"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Animation Settings</label>
+                                <div class="range-control">
+                                    <label style="min-width: 120px; font-size: 12px;">Transition Speed</label>
+                                    <input type="range" min="100" max="500" value="250" id="transitionSpeed">
+                                    <span class="range-value">250ms</span>
+                                </div>
+                                <select class="form-control" id="easingFunction" style="margin-top: 8px;">
+                                    <option value="linear">Linear</option>
+                                    <option value="ease">Ease</option>
+                                    <option value="ease-in">Ease In</option>
+                                    <option value="ease-out">Ease Out</option>
+                                    <option value="ease-in-out">Ease In Out</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Extended Base Theme</label>
+                                <select class="form-control" id="extendedTheme">
+                                    <option value="com.obsproject.Yami">Yami (Dark)</option>
+                                    <option value="com.obsproject.Acri">Acri (Light)</option>
+                                    <option value="com.obsproject.Rachni">Rachni (System)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-area">
+                    <div class="obs-preview" id="obsPreview">
+                        <div class="obs-titlebar">
+                            <span>OBS Studio 30.0.2 (64 bit)</span>
+                            <div style="display: flex; gap: 8px;">
+                                <div style="width: 12px; height: 12px; background: #ff5f56; border-radius: 50%;"></div>
+                                <div style="width: 12px; height: 12px; background: #ffbd2e; border-radius: 50%;"></div>
+                                <div style="width: 12px; height: 12px; background: #27ca3f; border-radius: 50%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="obs-menu">
+                            <div class="obs-menu-item">File</div>
+                            <div class="obs-menu-item">Edit</div>
+                            <div class="obs-menu-item">View</div>
+                            <div class="obs-menu-item">Profile</div>
+                            <div class="obs-menu-item">Scene Collection</div>
+                            <div class="obs-menu-item">Tools</div>
+                            <div class="obs-menu-item">Help</div>
+                        </div>
+
+                        <div class="obs-main">
+                            <div class="obs-sidebar">
+                                <div class="obs-panel">
+                                    <div class="obs-panel-title">Scenes</div>
+                                    <ul class="obs-list">
+                                        <li class="obs-list-item selected">Main Scene</li>
+                                        <li class="obs-list-item">Starting Soon</li>
+                                        <li class="obs-list-item">Be Right Back</li>
+                                        <li class="obs-list-item">Ending Soon</li>
+                                    </ul>
+                                </div>
+
+                                <div class="obs-panel">
+                                    <div class="obs-panel-title">Sources</div>
+                                    <ul class="obs-list">
+                                        <li class="obs-list-item">
+                                            <svg class="obs-source-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7l-2 3v1h8v-1l-2-3h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 12H3V4h18v10z"/></svg>
+                                            Desktop Capture
+                                        </li>
+                                        <li class="obs-list-item">
+                                            <svg class="obs-source-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15.2c-1.25 0-2.27-.92-2.27-2.2s1.02-2.2 2.27-2.2c1.25 0 2.27.92 2.27 2.2S13.25 15.2 12 15.2zM9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z"/></svg>
+                                            Webcam
+                                        </li>
+                                        <li class="obs-list-item">
+                                            <svg class="obs-source-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+                                            Microphone
+                                        </li>
+                                        <li class="obs-list-item">
+                                            <svg class="obs-source-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                                            Browser Source
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="obs-content">
+                                <!-- Main preview area -->
+                                <div style="padding: 24px; display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-style: italic;">
+                                    Preview Area - Scene Content
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="obs-controls">
+                            <button class="obs-control-btn record">
+                                <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
+                                Start Recording
+                            </button>
+                            <button class="obs-control-btn stream">
+                                <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                Start Streaming
+                            </button>
+                            <button class="obs-control-btn vcam">
+                                <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 15.2c-1.25 0-2.27-.92-2.27-2.2s1.02-2.2 2.27-2.2c1.25 0 2.27.92 2.27 2.2S13.25 15.2 12 15.2zM9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z"/></svg>
+                                Virtual Camera
+                            </button>
+                            <button class="obs-control-btn replay">
+                                <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                                Replay Buffer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="export-options">
+            <div>
+                <span class="status status--success" id="themeStatus">Theme Valid ✓</span>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <span style="font-size: 12px; color: var(--color-text-secondary);">Export as:</span>
+                <button class="btn btn--outline btn--sm" id="exportOvt">.ovt Theme</button>
+                <button class="btn btn--outline btn--sm" id="exportObt">.obt Base</button>
+                <button class="btn btn--outline btn--sm" id="exportCss">CSS Variables</button>
+                <button class="btn btn--primary btn--sm" id="exportPackage">Theme Package</button>
+            </div>
+            <div id="serverThemeList" style="margin-left: 16px; margin-top: 8px; font-size: 13px; color: var(--color-text-secondary);"></div>
+        </div>
+    </div>
+
+    <!-- Color picker and color math libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/coloris@0.10.2/dist/coloris.min.css">
+    <script src="https://unpkg.com/coloris@0.10.2/dist/coloris.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
+
+    <script>
+        // Theme data structure
+        let currentTheme = {
+            metadata: {
+                name: 'My Custom Theme',
+                id: 'com.user.custom-theme',
+                extends: 'com.obsproject.Yami',
+                author: '',
+                version: '1.0.0',
+                description: '',
+                dark: true
+            },
+            colors: {
+                background: '#1e1e1e',
+                surface: '#2d2d30',
+                text: '#ffffff',
+                border: '#3e3e42',
+                record: '#b91c1c',
+                stream: '#7c3aed',
+                vcam: '#059669',
+                replay: '#d97706'
+            },
+            typography: {
+                fontFamily: 'Segoe UI',
+                fontSizes: {
+                    small: 12,
+                    base: 14,
+                    large: 16
+                },
+                fontWeight: 400
+            },
+            layout: {
+                spacing: {
+                    xs: 4,
+                    sm: 8,
+                    md: 12,
+                    lg: 16
+                },
+                borderRadius: {
+                    small: 4,
+                    base: 6,
+                    large: 12
+                }
+            },
+            icons: {
+                style: 'default',
+                customIcons: {}
+            },
+            animations: {
+                transitionSpeed: 250,
+                easing: 'ease'
+            }
+        };
+
+        // Preset themes
+        const presets = {
+            catppuccin: {
+                name: 'Catppuccin Mocha',
+                colors: {
+                    background: '#1e1e2e',
+                    surface: '#313244',
+                    text: '#cdd6f4',
+                    border: '#585b70',
+                    record: '#f38ba8',
+                    stream: '#cba6f7',
+                    vcam: '#a6e3a1',
+                    replay: '#fab387'
+                }
+            },
+            dracula: {
+                name: 'Dracula',
+                colors: {
+                    background: '#282a36',
+                    surface: '#44475a',
+                    text: '#f8f8f2',
+                    border: '#6272a4',
+                    record: '#ff5555',
+                    stream: '#bd93f9',
+                    vcam: '#50fa7b',
+                    replay: '#ffb86c'
+                }
+            },
+            nord: {
+                name: 'Nord',
+                colors: {
+                    background: '#2e3440',
+                    surface: '#3b4252',
+                    text: '#eceff4',
+                    border: '#4c566a',
+                    record: '#bf616a',
+                    stream: '#5e81ac',
+                    vcam: '#a3be8c',
+                    replay: '#d08770'
+                }
+            },
+            material: {
+                name: 'Material Dark',
+                colors: {
+                    background: '#212121',
+                    surface: '#2d2d2d',
+                    text: '#ffffff',
+                    border: '#404040',
+                    record: '#f44336',
+                    stream: '#9c27b0',
+                    vcam: '#4caf50',
+                    replay: '#ff9800'
+                }
+            }
+        };
+
+        // DOM elements
+        const elements = {
+            themeNameInput: document.getElementById('themeName'),
+            themeSource: document.getElementById('themeSource'),
+            presetSelection: document.getElementById('presetSelection'),
+            vscodeImport: document.getElementById('vscodeImport'),
+            vscodeDropZone: document.getElementById('vscodeDropZone'),
+            vscodeFile: document.getElementById('vscodeFile'),
+            obsPreview: document.getElementById('obsPreview'),
+            darkModeToggle: document.getElementById('darkModeToggle'),
+            exportBtn: document.getElementById('exportBtn'),
+            importBtn: document.getElementById('importBtn'),
+            regenBtn: document.getElementById('regenBtn'),
+            tabs: document.querySelectorAll('.tab'),
+            tabPanels: document.querySelectorAll('.tab-panel')
+        };
+
+        // Initialize app
+        function initializeApp() {
+            // Initialize Coloris color picker on color input fields
+            try {
+                // add Coloris class to all color inputs so Coloris picks them up
+                document.querySelectorAll('.color-input').forEach(i => i.classList.add('coloris'));
+                if (window.Coloris && typeof Coloris !== 'undefined') {
+                    Coloris({ theme: 'large', el: '.coloris' });
+                }
+            } catch (e) {
+                // non-fatal
+                console.warn('Coloris init failed', e);
+            }
+
+            setupEventListeners();
+            updatePreview();
+            updateColorInputs();
+            setupTabSwitching();
+            setupColorPickers();
+            setupRangeControls();
+            setupFileHandlers();
+            fetchThemeList();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Theme source selection
+            elements.themeSource.addEventListener('change', (e) => {
+                const source = e.target.value;
+                elements.presetSelection.style.display = source === 'preset' ? 'block' : 'none';
+                elements.vscodeImport.style.display = source === 'vscode' ? 'block' : 'none';
+            });
+
+            // Preset selection
+            document.querySelectorAll('.preset-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const preset = item.dataset.preset;
+                    applyPreset(preset);
+                });
+            });
+
+            // Theme name input
+            elements.themeNameInput.addEventListener('input', (e) => {
+                currentTheme.metadata.name = e.target.value;
+                updateThemeValidation();
+            });
+
+            // Dark mode toggle
+            elements.darkModeToggle.addEventListener('click', toggleDarkMode);
+
+            // Regenerate themes on server
+            if (elements.regenBtn) {
+                elements.regenBtn.addEventListener('click', async () => {
+                    elements.regenBtn.disabled = true;
+                    showNotification('Regenerating themes...');
+                    try {
+                        const res = await fetch('/api/generate', { method: 'POST' });
+                        const data = await res.json();
+                        const ok = data.results && data.results.length > 0;
+                        if (ok) {
+                            showNotification('Generation finished', 'success');
+                        } else {
+                            showNotification('Generation completed (no scripts run)', 'info');
+                        }
+                        fetchThemeList();
+                        // Optionally show truncated logs
+                        if (data.results && data.results.length) {
+                            const msg = data.results.map(r => `${r.script}: rc=${r.returncode ?? r.status || 'n/a'}`).join('; ');
+                            console.log('generate results', msg);
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showNotification('Generation failed: ' + String(err), 'error');
+                    } finally {
+                        elements.regenBtn.disabled = false;
+                    }
+                });
+            }
+
+            // Export buttons
+            document.getElementById('exportOvt').addEventListener('click', () => exportTheme('ovt'));
+            document.getElementById('exportObt').addEventListener('click', () => exportTheme('obt'));
+            document.getElementById('exportCss').addEventListener('click', () => exportTheme('css'));
+            document.getElementById('exportPackage').addEventListener('click', () => exportTheme('package'));
+
+            // Quick actions
+            document.getElementById('resetTheme').addEventListener('click', resetTheme);
+            document.getElementById('randomizeColors').addEventListener('click', randomizeColors);
+            document.getElementById('validateTheme').addEventListener('click', validateTheme);
+        }
+
+        // Fetch available theme files from server and display download links
+        async function fetchThemeList() {
+            const container = document.getElementById('serverThemeList');
+            if (!container) return;
+            container.textContent = 'Loading themes...';
+            try {
+                const res = await fetch('/api/themes');
+                if (!res.ok) throw new Error('Failed to fetch');
+                const json = await res.json();
+                const themes = json.themes || [];
+                if (themes.length === 0) {
+                    container.textContent = 'No generated themes found';
+                    return;
+                }
+                const ul = document.createElement('ul');
+                ul.style.listStyle = 'none';
+                ul.style.padding = '0';
+                ul.style.margin = '0';
+                ul.style.display = 'flex';
+                ul.style.gap = '8px';
+                themes.forEach(t => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = `/api/themes/${encodeURIComponent(t.name)}`;
+                    a.textContent = t.name;
+                    a.style.color = 'var(--color-primary)';
+                    a.style.textDecoration = 'none';
+                    a.style.fontSize = '13px';
+                    li.appendChild(a);
+                    ul.appendChild(li);
+                });
+                container.innerHTML = '';
+                container.appendChild(ul);
+            } catch (err) {
+                console.error(err);
+                container.textContent = 'Error loading themes';
+            }
+        }
+
+        // Setup tab switching
+        function setupTabSwitching() {
+            elements.tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTab = tab.dataset.tab;
+                    
+                    // Update tab states
+                    elements.tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Update panel visibility
+                    document.querySelectorAll('.tab-panel').forEach(panel => {
+                        panel.style.display = 'none';
+                    });
+                    document.getElementById(targetTab + 'Tab').style.display = 'block';
+                });
+            });
+        }
+
+        // Setup color pickers
+        function setupColorPickers() {
+            document.querySelectorAll('.color-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const colorName = e.target.dataset.color;
+                    const colorValue = e.target.value;
+                    
+                    if (isValidColor(colorValue)) {
+                        currentTheme.colors[colorName] = colorValue;
+                        updateColorSwatch(colorName, colorValue);
+                        updatePreview();
+                        updateAccessibilityCheck();
+                        generateColorHarmony();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.color-swatch').forEach(swatch => {
+                swatch.addEventListener('click', (e) => {
+                    const colorName = e.target.dataset.color;
+                    const input = document.querySelector(`input[data-color="${colorName}"]`);
+                    
+                    // Create a hidden color input for native color picker
+                    const colorPicker = document.createElement('input');
+                    colorPicker.type = 'color';
+                    colorPicker.value = rgbToHex(getComputedStyle(e.target).backgroundColor);
+                    colorPicker.style.display = 'none';
+                    document.body.appendChild(colorPicker);
+                    
+                    colorPicker.addEventListener('change', (event) => {
+                        const newColor = event.target.value;
+                        input.value = newColor;
+                        input.dispatchEvent(new Event('input'));
+                        document.body.removeChild(colorPicker);
+                    });
+                    
+                    colorPicker.click();
+                });
+            });
+        }
+
+        // Setup range controls
+        function setupRangeControls() {
+            document.querySelectorAll('input[type="range"]').forEach(range => {
+                const updateValue = () => {
+                    const valueSpan = range.parentNode.querySelector('.range-value');
+                    const id = range.id;
+                    const value = parseInt(range.value);
+                    
+                    if (valueSpan) {
+                        if (id.includes('font')) {
+                            valueSpan.textContent = value + 'px';
+                        } else if (id.includes('transition')) {
+                            valueSpan.textContent = value + 'ms';
+                        } else {
+                            valueSpan.textContent = value + 'px';
+                        }
+                    }
+                    
+                    // Update theme data
+                    updateThemeFromRange(id, value);
+                    updatePreview();
+                };
+                
+                range.addEventListener('input', updateValue);
+                updateValue(); // Initialize
+            });
+        }
+
+        // Setup file handlers
+        function setupFileHandlers() {
+            // VSCode theme file handler
+            elements.vscodeDropZone.addEventListener('click', () => {
+                elements.vscodeFile.click();
+            });
+
+            elements.vscodeDropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.target.classList.add('dragover');
+            });
+
+            elements.vscodeDropZone.addEventListener('dragleave', (e) => {
+                e.target.classList.remove('dragover');
+            });
+
+            elements.vscodeDropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.target.classList.remove('dragover');
+                handleVSCodeFile(e.dataTransfer.files[0]);
+            });
+
+            elements.vscodeFile.addEventListener('change', (e) => {
+                handleVSCodeFile(e.target.files[0]);
+            });
+
+            // Icon upload handler
+            const iconDropZone = document.getElementById('iconDropZone');
+            const iconFiles = document.getElementById('iconFiles');
+
+            iconDropZone.addEventListener('click', () => {
+                iconFiles.click();
+            });
+
+            iconDropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.target.classList.add('dragover');
+            });
+
+            iconDropZone.addEventListener('dragleave', (e) => {
+                e.target.classList.remove('dragover');
+            });
+
+            iconDropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.target.classList.remove('dragover');
+                handleIconFiles(e.dataTransfer.files);
+            });
+
+            iconFiles.addEventListener('change', (e) => {
+                handleIconFiles(e.target.files);
+            });
+
+            // Color blindness simulation select
+            const simSelect = document.getElementById('colorBlindSim');
+            if (simSelect) {
+                simSelect.addEventListener('change', (e) => {
+                    applyColorBlindSimulation(e.target.value);
+                });
+            }
+        }
+
+        // Apply preset theme
+        function applyPreset(presetName) {
+            if (presets[presetName]) {
+                const preset = presets[presetName];
+                currentTheme.metadata.name = preset.name;
+                currentTheme.colors = { ...currentTheme.colors, ...preset.colors };
+                
+                elements.themeNameInput.value = preset.name;
+                updateColorInputs();
+                updatePreview();
+                updateAccessibilityCheck();
+                showNotification(`Applied ${preset.name} theme`);
+            }
+        }
+
+        // Update color inputs
+        function updateColorInputs() {
+            Object.keys(currentTheme.colors).forEach(colorName => {
+                const input = document.querySelector(`input[data-color="${colorName}"]`);
+                const swatch = document.querySelector(`.color-swatch[data-color="${colorName}"]`);
+                
+                if (input) {
+                    input.value = currentTheme.colors[colorName];
+                }
+                
+                if (swatch) {
+                    swatch.style.backgroundColor = currentTheme.colors[colorName];
+                }
+            });
+        }
+
+        // Update color swatch
+        function updateColorSwatch(colorName, colorValue) {
+            const swatch = document.querySelector(`.color-swatch[data-color="${colorName}"]`);
+            if (swatch) {
+                swatch.style.backgroundColor = colorValue;
+            }
+        }
+
+        // Update preview
+        function updatePreview() {
+            const preview = elements.obsPreview;
+            const colors = currentTheme.colors;
+            const typography = currentTheme.typography;
+            const layout = currentTheme.layout;
+            
+            // Apply colors
+            const titlebar = preview.querySelector('.obs-titlebar');
+            const menu = preview.querySelector('.obs-menu');
+            const sidebar = preview.querySelector('.obs-sidebar');
+            const controls = preview.querySelector('.obs-controls');
+            
+            if (titlebar) {
+                titlebar.style.backgroundColor = colors.surface;
+                titlebar.style.color = colors.text;
+                titlebar.style.borderColor = colors.border;
+            }
+            
+            if (menu) {
+                menu.style.backgroundColor = colors.surface;
+                menu.style.color = colors.text;
+                menu.style.borderColor = colors.border;
+            }
+            
+            if (sidebar) {
+                sidebar.style.backgroundColor = colors.background;
+                sidebar.style.borderColor = colors.border;
+            }
+            
+            if (controls) {
+                controls.style.backgroundColor = colors.surface;
+                controls.style.borderColor = colors.border;
+            }
+            
+            // Apply control button colors
+            const recordBtn = preview.querySelector('.obs-control-btn.record');
+            const streamBtn = preview.querySelector('.obs-control-btn.stream');
+            const vcamBtn = preview.querySelector('.obs-control-btn.vcam');
+            const replayBtn = preview.querySelector('.obs-control-btn.replay');
+            
+            if (recordBtn) recordBtn.style.backgroundColor = colors.record;
+            if (streamBtn) streamBtn.style.backgroundColor = colors.stream;
+            if (vcamBtn) vcamBtn.style.backgroundColor = colors.vcam;
+            if (replayBtn) replayBtn.style.backgroundColor = colors.replay;
+            
+            // Apply text colors
+            preview.querySelectorAll('.obs-panel-title, .obs-list-item').forEach(el => {
+                el.style.color = colors.text;
+            });
+            
+            // Apply typography
+            preview.style.fontFamily = typography.fontFamily;
+            preview.style.fontSize = typography.fontSizes.base + 'px';
+            
+            // Apply spacing and border radius
+            preview.style.borderRadius = layout.borderRadius.large + 'px';
+        }
+
+        // Update theme from range input
+        function updateThemeFromRange(rangeId, value) {
+            switch (rangeId) {
+                case 'fontSizeSmall':
+                    currentTheme.typography.fontSizes.small = value;
+                    break;
+                case 'fontSizeBase':
+                    currentTheme.typography.fontSizes.base = value;
+                    break;
+                case 'fontSizeLarge':
+                    currentTheme.typography.fontSizes.large = value;
+                    break;
+                case 'spacingXS':
+                    currentTheme.layout.spacing.xs = value;
+                    break;
+                case 'spacingSM':
+                    currentTheme.layout.spacing.sm = value;
+                    break;
+                case 'spacingMD':
+                    currentTheme.layout.spacing.md = value;
+                    break;
+                case 'spacingLG':
+                    currentTheme.layout.spacing.lg = value;
+                    break;
+                case 'radiusSmall':
+                    currentTheme.layout.borderRadius.small = value;
+                    break;
+                case 'radiusBase':
+                    currentTheme.layout.borderRadius.base = value;
+                    break;
+                case 'radiusLarge':
+                    currentTheme.layout.borderRadius.large = value;
+                    break;
+                case 'transitionSpeed':
+                    currentTheme.animations.transitionSpeed = value;
+                    break;
+            }
+        }
+
+        // Handle VSCode theme file
+        function handleVSCodeFile(file) {
+            if (file && file.type === 'application/json') {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const vscodeTheme = JSON.parse(e.target.result);
+                        convertVSCodeTheme(vscodeTheme);
+                        showNotification('VSCode theme imported successfully');
+                    } catch (error) {
+                        showNotification('Invalid theme file', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Convert VSCode theme to OBS theme
+        function convertVSCodeTheme(vscodeTheme) {
+            const mapping = {
+                'editor.background': 'background',
+                'editor.foreground': 'text',
+                'activityBar.background': 'surface',
+                'input.border': 'border'
+            };
+            
+            if (vscodeTheme.colors) {
+                Object.keys(mapping).forEach(vscodeKey => {
+                    if (vscodeTheme.colors[vscodeKey]) {
+                        const obsKey = mapping[vscodeKey];
+                        currentTheme.colors[obsKey] = vscodeTheme.colors[vscodeKey];
+                    }
+                });
+            }
+            
+            if (vscodeTheme.name) {
+                currentTheme.metadata.name = vscodeTheme.name;
+                elements.themeNameInput.value = vscodeTheme.name;
+            }
+            
+            updateColorInputs();
+            updatePreview();
+            updateAccessibilityCheck();
+        }
+
+        // Handle icon files
+        function handleIconFiles(files) {
+            Array.from(files).forEach(file => {
+                if (file.type === 'image/svg+xml') {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const iconName = file.name.replace('.svg', '');
+                        currentTheme.icons.customIcons[iconName] = e.target.result;
+                        showNotification(`Icon '${iconName}' added`);
+                    };
+                    reader.readAsText(file);
+                }
+            });
+        }
+
+        // Update accessibility check
+        function updateAccessibilityCheck() {
+            const bgColor = currentTheme.colors.background;
+            const textColor = currentTheme.colors.text;
+            const ratio = calculateContrastRatio(bgColor, textColor);
+            
+            const ratioElement = document.getElementById('contrastRatio');
+            const complianceElement = document.getElementById('wcagCompliance');
+            const checkElement = document.getElementById('accessibilityCheck');
+            
+            ratioElement.textContent = ratio.toFixed(2) + ':1';
+            
+            if (ratio >= 7.0) {
+                complianceElement.textContent = 'WCAG AAA Compliant ✓';
+                checkElement.className = 'accessibility-check pass';
+            } else if (ratio >= 4.5) {
+                complianceElement.textContent = 'WCAG AA Compliant ✓';
+                checkElement.className = 'accessibility-check pass';
+            } else {
+                complianceElement.textContent = 'Below WCAG Standards ⚠';
+                checkElement.className = 'accessibility-check fail';
+            }
+        }
+
+        // Generate color harmony suggestions
+        function generateColorHarmony() {
+            const primaryColor = currentTheme.colors.background;
+            const suggestions = generateColorHarmonyColors(primaryColor);
+            const container = document.getElementById('harmonySuggestions');
+            
+            container.innerHTML = '';
+            suggestions.forEach(color => {
+                const div = document.createElement('div');
+                div.className = 'harmony-color';
+                div.style.backgroundColor = color;
+                div.title = color;
+                div.addEventListener('click', () => {
+                    // Apply to a random accent color
+                    const accentKeys = ['record', 'stream', 'vcam', 'replay'];
+                    const randomKey = accentKeys[Math.floor(Math.random() * accentKeys.length)];
+                    currentTheme.colors[randomKey] = color;
+                    updateColorInputs();
+                    updatePreview();
+                });
+                container.appendChild(div);
+            });
+        }
+
+        // New: use chroma.js to make more advanced harmonies
+        function generateColorHarmonyColors(baseColor) {
+            try {
+                if (window.chroma) {
+                    const c = chroma(baseColor);
+                    // generate complementary, analogous, triadic, and split-complement
+                    const harmonies = [
+                        c.hex(),
+                        c.set('hsl.h', (c.get('hsl.h') + 30) % 360).hex(),
+                        c.set('hsl.h', (c.get('hsl.h') + 60) % 360).hex(),
+                        chroma.mix(c, 'white', 0.15).hex(),
+                        chroma(c).set('hsl.h', (c.get('hsl.h') + 180) % 360).hex()
+                    ];
+                    return harmonies;
+                }
+            } catch (e) {
+                console.warn('chroma harmony failed', e);
+            }
+            // fallback
+            return [baseColor, '#ffffff', '#000000', '#888888'];
+        }
+
+        // Apply color blindness simulation by toggling CSS filters on the preview area
+        function applyColorBlindSimulation(mode) {
+            const preview = document.getElementById('obsPreview');
+            if (!preview) return;
+            switch (mode) {
+                case 'protanopia':
+                    preview.style.filter = 'url(#protanopia)';
+                    break;
+                case 'deuteranopia':
+                    preview.style.filter = 'url(#deuteranopia)';
+                    break;
+                case 'tritanopia':
+                    preview.style.filter = 'url(#tritanopia)';
+                    break;
+                default:
+                    preview.style.filter = '';
+            }
+        }
+
+        // Toggle dark mode
+        function toggleDarkMode() {
+            const currentScheme = document.documentElement.dataset.colorScheme;
+            const newScheme = currentScheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.dataset.colorScheme = newScheme;
+        }
+
+        // Reset theme
+        function resetTheme() {
+            currentTheme.colors = {
+                background: '#1e1e1e',
+                surface: '#2d2d30',
+                text: '#ffffff',
+                border: '#3e3e42',
+                record: '#b91c1c',
+                stream: '#7c3aed',
+                vcam: '#059669',
+                replay: '#d97706'
+            };
+            
+            updateColorInputs();
+            updatePreview();
+            updateAccessibilityCheck();
+            showNotification('Theme reset to defaults');
+        }
+
+        // Randomize colors
+        function randomizeColors() {
+            const accentKeys = ['record', 'stream', 'vcam', 'replay'];
+            accentKeys.forEach(key => {
+                currentTheme.colors[key] = generateRandomColor();
+            });
+            
+            updateColorInputs();
+            updatePreview();
+            updateAccessibilityCheck();
+            showNotification('Colors randomized');
+        }
+
+        // Validate theme
+        function validateTheme() {
+            const issues = [];
+            
+            if (!currentTheme.metadata.name.trim()) {
+                issues.push('Theme name is required');
+            }
+            
+            const contrastRatio = calculateContrastRatio(currentTheme.colors.background, currentTheme.colors.text);
+            if (contrastRatio < 4.5) {
+                issues.push('Text contrast is too low');
+            }
+            
+            if (issues.length > 0) {
+                showNotification('Issues found: ' + issues.join(', '), 'error');
+            } else {
+                showNotification('Theme validation passed', 'success');
+            }
+            
+            updateThemeValidation();
+        }
+
+        // Update theme validation status
+        function updateThemeValidation() {
+            const status = document.getElementById('themeStatus');
+            const contrastRatio = calculateContrastRatio(currentTheme.colors.background, currentTheme.colors.text);
+            
+            if (currentTheme.metadata.name.trim() && contrastRatio >= 4.5) {
+                status.className = 'status status--success';
+                status.textContent = 'Theme Valid ✓';
+            } else {
+                status.className = 'status status--warning';
+                status.textContent = 'Issues Detected';
+            }
+        }
+
+        // Export theme
+        function exportTheme(format) {
+            let content, filename, mimeType;
+            
+            switch (format) {
+                case 'ovt':
+                    content = generateOVTTheme();
+                    filename = `${currentTheme.metadata.name.replace(/\s+/g, '-')}.ovt`;
+                    mimeType = 'text/plain';
+                    break;
+                case 'obt':
+                    content = generateOBTTheme();
+                    filename = `${currentTheme.metadata.name.replace(/\s+/g, '-')}.obt`;
+                    mimeType = 'text/plain';
+                    break;
+                case 'css':
+                    content = generateCSSVariables();
+                    filename = `${currentTheme.metadata.name.replace(/\s+/g, '-')}.css`;
+                    mimeType = 'text/css';
+                    break;
+                case 'package':
+                    // For simplicity, export as JSON
+                    content = JSON.stringify(currentTheme, null, 2);
+                    filename = `${currentTheme.metadata.name.replace(/\s+/g, '-')}.json`;
+                    mimeType = 'application/json';
+                    break;
+            }
+            
+            downloadFile(content, filename, mimeType);
+            showNotification(`Exported ${filename}`);
+        }
+
+        // Generate OVT theme file
+        function generateOVTTheme() {
+            const { metadata, colors, typography, layout } = currentTheme;
+            
+            let ovt = `@OBSThemeMeta {
+`;
+            ovt += `    name: '${metadata.name}';
+`;
+            ovt += `    id: '${metadata.id}';
+`;
+            ovt += `    extends: '${metadata.extends}';
+`;
+            ovt += `    author: '${metadata.author || 'Unknown'}';
+`;
+            ovt += `    dark: '${metadata.dark}';
+`;
+            ovt += `}
+
+`;
+            
+            ovt += `@OBSThemeVars {
+`;
+            Object.keys(colors).forEach(key => {
+                ovt += `    --obs-${key}: ${colors[key]};
+`;
+            });
+            ovt += `    --obs-font-family: '${typography.fontFamily}';
+`;
+            ovt += `    --obs-font-size: ${typography.fontSizes.base}px;
+`;
+            ovt += `    --obs-border-radius: ${layout.borderRadius.base}px;
+`;
+            ovt += `}
+
+`;
+            
+            ovt += `/* Custom theme styles */
+`;
+            ovt += `QMainWindow {
+`;
+            ovt += `    background-color: var(--obs-background);
+`;
+            ovt += `    color: var(--obs-text);
+`;
+            ovt += `}
+
+`;
+            
+            ovt += `QPushButton {
+`;
+            ovt += `    background-color: var(--obs-surface);
+`;
+            ovt += `    color: var(--obs-text);
+`;
+            ovt += `    border: 1px solid var(--obs-border);
+`;
+            ovt += `    border-radius: var(--obs-border-radius);
+`;
+            ovt += `    padding: 8px 16px;
+`;
+            ovt += `}
+`;
+            
+            return ovt;
+        }
+
+        // Generate OBT theme file
+        function generateOBTTheme() {
+            return generateOVTTheme(); // Similar structure for now
+        }
+
+        // Generate CSS variables
+        function generateCSSVariables() {
+            const { colors, typography, layout } = currentTheme;
+            
+            let css = `:root {
+`;
+            css += `  /* Theme Colors */
+`;
+            Object.keys(colors).forEach(key => {
+                css += `  --theme-${key}: ${colors[key]};
+`;
+            });
+            
+            css += `
+  /* Typography */
+`;
+            css += `  --theme-font-family: '${typography.fontFamily}';
+`;
+            css += `  --theme-font-size-small: ${typography.fontSizes.small}px;
+`;
+            css += `  --theme-font-size-base: ${typography.fontSizes.base}px;
+`;
+            css += `  --theme-font-size-large: ${typography.fontSizes.large}px;
+`;
+            
+            css += `
+  /* Layout */
+`;
+            Object.keys(layout.spacing).forEach(key => {
+                css += `  --theme-spacing-${key}: ${layout.spacing[key]}px;
+`;
+            });
+            Object.keys(layout.borderRadius).forEach(key => {
+                css += `  --theme-radius-${key}: ${layout.borderRadius[key]}px;
+`;
+            });
+            
+            css += `}
+`;
+            
+            return css;
+        }
+
+        // Utility functions
+        function isValidColor(color) {
+            return /^#([0-9A-F]{3}){1,2}$/i.test(color) || /^rgb\(/.test(color) || /^hsl\(/.test(color);
+        }
+
+        function rgbToHex(rgb) {
+            const result = rgb.match(/\d+/g);
+            if (result && result.length >= 3) {
+                const [r, g, b] = result.map(num => {
+                    const hex = parseInt(num).toString(16);
+                    return hex.length === 1 ? '0' + hex : hex;
+                });
+                return `#${r}${g}${b}`;
+            }
+            return '#000000';
+        }
+
+        function calculateContrastRatio(color1, color2) {
+            // Use chroma.js contrast if available (more robust), otherwise fallback
+            try {
+                if (window.chroma && typeof chroma.contrast === 'function') {
+                    return chroma.contrast(color1, color2);
+                }
+            } catch (e) {
+                console.warn('chroma contrast failed', e);
+            }
+
+            const getLuminance = (hex) => {
+                const rgb = hex.replace('#', '').match(/.{2}/g).map(h => parseInt(h, 16) / 255);
+                const [r, g, b] = rgb.map(c => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+                return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            };
+            
+            const lum1 = getLuminance(color1);
+            const lum2 = getLuminance(color2);
+            const brightest = Math.max(lum1, lum2);
+            const darkest = Math.min(lum1, lum2);
+            
+            return (brightest + 0.05) / (darkest + 0.05);
+        }
+
+        function generateColorHarmonyColors(baseColor) {
+            // Simple color harmony generation
+            const hsl = hexToHsl(baseColor);
+            const harmonies = [
+                hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l),
+                hslToHex((hsl.h + 60) % 360, hsl.s, hsl.l),
+                hslToHex((hsl.h + 120) % 360, hsl.s, hsl.l),
+                hslToHex((hsl.h + 180) % 360, hsl.s, hsl.l)
+            ];
+            
+            return harmonies;
+        }
+
+        function hexToHsl(hex) {
+            const r = parseInt(hex.slice(1, 3), 16) / 255;
+            const g = parseInt(hex.slice(3, 5), 16) / 255;
+            const b = parseInt(hex.slice(5, 7), 16) / 255;
+            
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+            
+            if (max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            
+            return { h: h * 360, s: s * 100, l: l * 100 };
+        }
+
+        function hslToHex(h, s, l) {
+            h = h % 360;
+            s = s / 100;
+            l = l / 100;
+            
+            const c = (1 - Math.abs(2 * l - 1)) * s;
+            const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+            const m = l - c / 2;
+            let r, g, b;
+            
+            if (h < 60) {
+                r = c; g = x; b = 0;
+            } else if (h < 120) {
+                r = x; g = c; b = 0;
+            } else if (h < 180) {
+                r = 0; g = c; b = x;
+            } else if (h < 240) {
+                r = 0; g = x; b = c;
+            } else if (h < 300) {
+                r = x; g = 0; b = c;
+            } else {
+                r = c; g = 0; b = x;
+            }
+            
+            const toHex = (val) => {
+                const hex = Math.round((val + m) * 255).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            };
+            
+            return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        }
+
+        function generateRandomColor() {
+            return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 24px;
+                background: var(--color-surface);
+                border: 1px solid var(--color-border);
+                border-radius: 8px;
+                box-shadow: var(--shadow-lg);
+                z-index: 1000;
+                transition: all 0.3s ease;
+            `;
+            
+            if (type === 'success') {
+                notification.style.borderColor = 'var(--color-success)';
+                notification.style.color = 'var(--color-success)';
+            } else if (type === 'error') {
+                notification.style.borderColor = 'var(--color-error)';
+                notification.style.color = 'var(--color-error)';
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
