@@ -54,9 +54,10 @@ function renderReport(data: any) {
   const list = document.createElement('div')
   list.className = 'report-list'
 
-  data.validations.forEach((entry: any) => {
+  data.validations.forEach((entry: any, index: number) => {
     const box = document.createElement('div')
     box.className = 'report-item'
+    box.key = `report-item-${index}`
 
     const header = document.createElement('div')
     header.className = 'report-header'
@@ -147,7 +148,7 @@ async function fetchAndRender() {
     status.textContent = 'last updated'
   } catch (e: any) {
     const panel = document.getElementById('panel')!
-    panel.innerHTML = `<div class="error">${String(e)}</div>`
+    panel.innerHTML = `<div class="error">Error fetching validation report: ${String(e)}</div>`
     status.textContent = 'error'
   }
 }

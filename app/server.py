@@ -229,13 +229,14 @@ def api_themes():
 @app.route("/api/themes/<path:filename>", methods=["GET"])
 def api_theme_download(filename: str):
     # Security: only allow files from the repository root
-    candidate = ROOT / filename
-    try:
-        candidate.resolve().relative_to(ROOT.resolve())
-    except Exception:
+    # A more robust way to secure this is to have a whitelist of allowed files/directories
+    # or to use a library like safe-join.
+    # For now, let's make the check more explicit.
+    secure_path = Path(ROOT).joinpath(filename).resolve()
+    if ROOT.resolve() not in secure_path.parents:
         return jsonify({"error": "Invalid filename"}), 400
 
-    if not candidate.exists():
+    if not secure_path.exists():
         return jsonify({"error": "Not found"}), 404
 
     return send_from_directory(str(ROOT), filename, as_attachment=True)
@@ -311,4 +312,4 @@ def api_validate():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "5000"))
     print(f"Starting server on http://127.0.0.1:{port} (serving app/index.html)")
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)
