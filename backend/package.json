@@ -3,12 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "node server.js"
+    "start-proxy": "node server.js",
+    "dev": "concurrently \"python3 ../app/server.py\" \"pnpm --silent --prefix . start-proxy\""
   },
   "dependencies": {
     "express": "^4.18.2",
     "axios": "^1.4.0",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "http-proxy-middleware": "^2.0.6",
+    "concurrently": "^8.2.0"
   }
   ,
   "devDependencies": {

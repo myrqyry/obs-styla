@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>OBS Studio Theme Creator — Prototype</title>
+    <style>
+      /* Basic reset and layout */
+      :root{
+        --bg:#0b1220;
+        --surface:#0f1724;
+        --muted:#94a3b8;
+        --accent:#8b5cf6;
+        --text:#e6eef8;
+        --danger:#dc2626;
+        --success:#16a34a;
+        --card-radius:10px;
+        --gap:12px;
+        --ui-font: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      }
+
+      html,body{height:100%;margin:0;font-family:var(--ui-font);background:linear-gradient(180deg,#071025 0%, #071423 100%);color:var(--text)}
+      .app{max-width:1200px;margin:28px auto;padding:20px;display:grid;grid-template-rows:auto 1fr auto;gap:18px}
+
+      /* Header */
+      .header{display:flex;justify-content:space-between;align-items:center}
+      .title{font-size:20px;font-weight:600;display:flex;gap:12px;align-items:center}
+      .controls{display:flex;gap:8px;align-items:center}
+      .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+      .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text)}
+
+      /* Body layout */
+      .body{display:grid;grid-template-columns:300px 1fr 360px;gap:18px}
+      .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:14px;border-radius:var(--card-radius);box-shadow:0 6px 20px rgba(2,6,23,0.6)}
+      h3{margin:0 0 10px 0;font-size:14px}
+      .section{display:flex;flex-direction:column;gap:10px}
+
+      /* Left sidebar (presets & tokens) */
+      .presets{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+      .preset{background:rgba(255,255,255,0.03);padding:8px;border-radius:8px;cursor:pointer;font-size:13px}
+      .token-row{display:flex;align-items:center;gap:8px}
+      .token-row label{flex:1;font-size:13px;color:var(--muted)}
+      .token-row input[type=color]{width:56px;height:34px;border-radius:6px;border:0;cursor:pointer}
+
+      /* Center preview */
+      .preview{display:flex;flex-direction:column;gap:12px}
+      .obs-window{background:var(--surface);border-radius:10px;padding:12px;color:var(--text);min-height:360px;border:1px solid rgba(255,255,255,0.03)}
+      .obs-top{display:flex;justify-content:space-between;align-items:center}
+      .obs-actions{display:flex;gap:8px}
+      .obs-actions button{border:0;padding:6px 10px;border-radius:8px;color:white}
+
+      /* Right panel (export & tools) */
+      .export-area{display:flex;flex-direction:column;gap:10px}
+      .mini{font-size:13px;color:var(--muted)}
+      .file-drop{border:2px dashed rgba(255,255,255,0.03);padding:10px;border-radius:8px;text-align:center;color:var(--muted)}
+      .validator-output{max-height:220px;overflow:auto;background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;font-family:monospace;font-size:12px}
+
+      footer{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;padding-top:6px}
+
+      @media (max-width:1100px){.body{grid-template-columns:1fr;}.app{padding:12px}}
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div class="title">OBS Theme Creator <small style="color:var(--muted);font-size:12px">prototype</small></div>
+        <div class="controls">
+          <button class="btn" id="exportObv">Export .ovt</button>
+          <button class="btn secondary" id="exportCss">Export CSS</button>
+        </div>
+      </header>
+
+      <div class="body">
+        <aside class="panel">
+          <div class="section">
+            <h3>Presets</h3>
+            <div class="presets" id="presets">
+              <!-- Preset buttons rendered by JS -->
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>Tokens</h3>
+            <div class="token-row"><label>Background</label><input type="color" id="token-bg" value="#071423"></div>
+            <div class="token-row"><label>Surface</label><input type="color" id="token-surface" value="#0f1724"></div>
+            <div class="token-row"><label>Accent</label><input type="color" id="token-accent" value="#8b5cf6"></div>
+            <div class="token-row"><label>Text</label><input type="color" id="token-text" value="#e6eef8"></div>
+            <div class="token-row"><label>Border</label><input type="color" id="token-border" value="#1f2937"></div>
+          </div>
+
+          <div class="section">
+            <h3>Sizes</h3>
+            <label class="mini">Base font size <span id="fontSizeLabel">14</span>px</label>
+            <input id="fontSize" type="range" min="10" max="20" value="14">
+          </div>
+        </aside>
+
+        <main class="panel preview">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3 style="margin:0">Preview</h3>
+            <div class="mini">Live preview of selected theme tokens</div>
+          </div>
+
+          <div class="obs-window" id="obsPreview" role="region" aria-label="OBS preview">
+            <div class="obs-top">
+              <div style="display:flex;gap:12px;align-items:center">
+                <div style="width:40px;height:40px;border-radius:8px;background:rgba(0,0,0,0.2)"></div>
+                <div>
+                  <div style="font-weight:600">OBS Studio</div>
+                  <div style="font-size:12px;color:var(--muted)">Theme preview</div>
+                </div>
+              </div>
+              <div class="obs-actions">
+                <button id="recBtn" style="background:var(--danger)">REC</button>
+                <button id="streamBtn" style="background:var(--success)">STREAM</button>
+                <button id="vcamBtn" style="background:var(--accent)">VCAM</button>
+              </div>
+            </div>
+
+            <div style="margin-top:14px;display:flex;gap:12px">
+              <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+                <div style="background:rgba(0,0,0,0.06);padding:10px;border-radius:8px">Scene Collection</div>
+                <div style="display:flex;gap:8px">
+                  <div style="flex:1;background:rgba(0,0,0,0.06);padding:10px;border-radius:8px">Sources</div>
+                  <div style="width:220px;background:rgba(0,0,0,0.04);padding:10px;border-radius:8px">Mixer</div>
+                </div>
+              </div>
+              <div style="width:260px;background:rgba(0,0,0,0.03);padding:10px;border-radius:8px">Properties</div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;gap:12px;margin-top:12px">
+            <div class="mini">Preview updates immediately when you change tokens.</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn secondary" id="downloadPreview">Download Preview PNG</button>
+            </div>
+          </div>
+        </main>
+
+        <aside class="panel export-area">
+          <div>
+            <h3>Export</h3>
+            <div class="mini">Build .ovt/.obt files or CSS variables from the current tokens.</div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn" id="exportOvt">Export .ovt</button>
+              <button class="btn secondary" id="exportObt">Export .obt</button>
+            </div>
+          </div>
+
+          <div>
+            <h3>Import / Upload</h3>
+            <div class="file-drop" id="fileDrop">Drop a .ovt/.obt or JSON here to import</div>
+            <input type="file" id="fileInput" style="display:none" accept=".ovt,.obt,.json">
+            <div style="margin-top:8px">
+              <button class="btn secondary" id="chooseFile">Choose file</button>
+            </div>
+          </div>
+
+          <div>
+            <h3>Validation</h3>
+            <div class="mini">Run the built-in validator (client-side) to detect missing meta or var issues.</div>
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <button class="btn" id="runValidate">Run Validate</button>
+            </div>
+            <div class="validator-output" id="validatorOutput">No validation run yet.</div>
+          </div>
+        </aside>
+      </div>
+
+      <footer>
+        <div>OBS Styla — prototype</div>
+        <div>Tip: use the Presets to start quickly</div>
+      </footer>
+    </div>
+
+    <script>
+      // Theme state
+      const theme = {
+        metadata: {name: 'Prototype Theme', id: 'com.example.prototype', author: 'You', dark: true},
+        colors: {
+          background: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#071423',
+          surface: getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#0f1724',
+          accent: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#8b5cf6',
+          text: getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#e6eef8',
+          border: getComputedStyle(document.documentElement).getPropertyValue('--border') || '#1f2937'
+        },
+        sizes: {fontSize: 14}
+      }
+
+      // Presets
+      const PRESETS = {
+        'Catppuccin Mocha': {background:'#0b1220',surface:'#11121a',accent:'#8b5cf6',text:'#e6eef8'},
+        'Material Dark': {background:'#121212',surface:'#1f1f1f',accent:'#ffb86b',text:'#e6eef8'},
+        'Light Clean': {background:'#ffffff',surface:'#f7fafc',accent:'#2563eb',text:'#0f1724'}
+      }
+
+      // Wire up presets
+      const presetsEl = document.getElementById('presets')
+      Object.keys(PRESETS).forEach(name=>{
+        const div = document.createElement('div')
+        div.className='preset'
+        div.textContent = name
+        div.addEventListener('click',()=>applyPreset(name))
+        presetsEl.appendChild(div)
+      })
+
+      // Token inputs
+      const inputs = {
+        bg: document.getElementById('token-bg'),
+        surface: document.getElementById('token-surface'),
+        accent: document.getElementById('token-accent'),
+        text: document.getElementById('token-text'),
+        border: document.getElementById('token-border'),
+        fontSize: document.getElementById('fontSize'),
+        fontSizeLabel: document.getElementById('fontSizeLabel')
+      }
+
+      function applyPreset(name){
+        const p = PRESETS[name]
+        inputs.bg.value = p.background
+        inputs.surface.value = p.surface
+        inputs.accent.value = p.accent
+        inputs.text.value = p.text
+        updateFromInputs()
+      }
+
+      function updateFromInputs(){
+        theme.colors.background = inputs.bg.value
+        theme.colors.surface = inputs.surface.value
+        theme.colors.accent = inputs.accent.value
+        theme.colors.text = inputs.text.value
+        theme.colors.border = inputs.border.value
+        theme.sizes.fontSize = +inputs.fontSize.value
+        inputs.fontSizeLabel.textContent = inputs.fontSize.value
+        // Apply to :root CSS vars for preview
+        document.documentElement.style.setProperty('--bg', theme.colors.background)
+        document.documentElement.style.setProperty('--surface', theme.colors.surface)
+        document.documentElement.style.setProperty('--accent', theme.colors.accent)
+        document.documentElement.style.setProperty('--text', theme.colors.text)
+        document.documentElement.style.setProperty('--border', theme.colors.border)
+        document.documentElement.style.setProperty('--font-size', theme.sizes.fontSize+'px')
+        // Update preview specific styles
+        const obs = document.getElementById('obsPreview')
+        obs.style.background = theme.colors.surface
+        obs.style.color = theme.colors.text
+        obs.querySelectorAll('.obs-actions button').forEach(b=>{
+          if(b.id==='recBtn') b.style.background = 'var(--danger)'
+          else if(b.id==='streamBtn') b.style.background = 'var(--success)'
+          else b.style.background = theme.colors.accent
+        })
+        // color inner blocks
+        obs.querySelectorAll('div[style]').forEach(el=>{
+          // naive detection of boxes (we set inline width/height earlier)
+          if(el.style.background && el.style.background.includes('rgba')){
+            el.style.background = theme.colors.background
+          }
+        })
+      }
+
+      // Attach listeners
+      Object.values(inputs).forEach(el=>{ if(el) el.addEventListener('input', updateFromInputs) })
+
+      // File drop
+      const fileDrop = document.getElementById('fileDrop')
+      const fileInput = document.getElementById('fileInput')
+      document.getElementById('chooseFile').addEventListener('click', ()=>fileInput.click())
+      fileInput.addEventListener('change', (e)=>{
+        const f = e.target.files[0]; if(!f) return; readFileAndImport(f)
+      })
+      fileDrop.addEventListener('dragover', (e)=>{e.preventDefault(); fileDrop.classList.add('drag')})
+      fileDrop.addEventListener('dragleave', ()=>fileDrop.classList.remove('drag'))
+      fileDrop.addEventListener('drop', (e)=>{e.preventDefault(); fileDrop.classList.remove('drag'); const f=e.dataTransfer.files[0]; if(f) readFileAndImport(f) })
+
+      function readFileAndImport(file){
+        const reader = new FileReader()
+        reader.onload = ()=>{
+          const text = reader.result
+          if(file.name.endsWith('.json')){
+            try{const data = JSON.parse(text); if(data.colors) applyImported(data)}catch(e){showMsg('Invalid JSON')}
+          }else if(file.name.endsWith('.ovt')||file.name.endsWith('.obt')){
+            // naive parser: extract vars block
+            const varsMatch = String(text).match(/@OBSThemeVars\s*{([\s\S]*?)}/)
+            if(varsMatch){
+              const varsText = varsMatch[1]
+              const colorMatches = Array.from(varsText.matchAll(/--obs-([a-z0-9-]+):\s*([^;\n]+)/ig))
+              colorMatches.forEach(m=>{
+                const key = m[1]; const val = m[2].trim();
+                if(key.includes('background')) inputs.bg.value = val
+                if(key.includes('surface')) inputs.surface.value = val
+                if(key.includes('accent')) inputs.accent.value = val
+                if(key.includes('text')) inputs.text.value = val
+              })
+              updateFromInputs()
+              showMsg('Imported theme vars from file')
+            } else showMsg('No @OBSThemeVars block detected')
+          } else showMsg('Unsupported file type')
+        }
+        reader.readAsText(file)
+      }
+
+      function applyImported(data){
+        if(data.colors){
+          if(data.colors.background) inputs.bg.value = data.colors.background
+          if(data.colors.surface) inputs.surface.value = data.colors.surface
+          if(data.colors.accent) inputs.accent.value = data.colors.accent
+          if(data.colors.text) inputs.text.value = data.colors.text
+          updateFromInputs(); showMsg('Imported JSON theme')
+        }
+      }
+
+      function showMsg(m){ const out=document.getElementById('validatorOutput'); out.textContent = m }
+
+      // Export .ovt
+      function buildOVT(){
+        const md = theme.metadata
+        const colors = theme.colors
+        let txt = `@OBSThemeMeta {\n    name: '${md.name}';\n    id: '${md.id}';\n    extends: '';\n    author: '${md.author}';\n    dark: '${md.dark}';\n}\n\n@OBSThemeVars {\n`
+        Object.keys(colors).forEach(k=>{ txt += `    --obs-${k}: ${colors[k]};\n` })
+        txt += `    --obs-font-size: ${theme.sizes.fontSize}px;\n}`
+        txt += `\n/* Basic QSS sample */\nQMainWindow { background-color: var(--obs-background); color: var(--obs-text); }\n`
+        return txt
+      }
+
+      function download(content, filename, mime='text/plain'){
+        const blob = new Blob([content],{type:mime}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url)
+      }
+
+      document.getElementById('exportOvt').addEventListener('click', ()=>download(buildOVT(), theme.metadata.name.replace(/\s+/g,'-').toLowerCase()+'.ovt'))
+      document.getElementById('exportObt').addEventListener('click', ()=>download(buildOVT(), theme.metadata.name.replace(/\s+/g,'-').toLowerCase()+'.obt'))
+      document.getElementById('exportObv').addEventListener('click', ()=>download(buildOVT(), 'theme.ovt'))
+      document.getElementById('exportCss').addEventListener('click', ()=>{
+        let css = `:root {\n`;
+        Object.keys(theme.colors).forEach(k=> css += `  --theme-${k}: ${theme.colors[k]};\n`)
+        css += `  --theme-font-size: ${theme.sizes.fontSize}px;\n}`
+        download(css, 'theme.css', 'text/css')
+      })
+
+      // Validator (simple client-side checks)
+      document.getElementById('runValidate').addEventListener('click', ()=>{
+        const issues = []
+        if(!theme.metadata.name) issues.push('META_FIELD_MISSING: name')
+        if(!theme.metadata.id) issues.push('META_FIELD_MISSING: id')
+        // color validity
+        Object.entries(theme.colors).forEach(([k,v])=>{ if(!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) issues.push(`INVALID_COLOR: ${k} -> ${v}`) })
+        const out = document.getElementById('validatorOutput')
+        out.textContent = issues.length? issues.join('\n') : 'No issues found (basic checks)'
+      })
+
+      // Initialize UI values
+      updateFromInputs()
+
+      // Optional: download preview as PNG (simple SVG snapshot fallback)
+      document.getElementById('downloadPreview').addEventListener('click', ()=>{
+        const p = document.getElementById('obsPreview')
+        const svg = `<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1000\" height=\"600\"><foreignObject width=\"100%\" height=\"100%\">${new XMLSerializer().serializeToString(p)}</foreignObject></svg>`
+        download(svg, 'preview.svg', 'image/svg+xml')
+      })
+    </script>
+  </body>
+</html>

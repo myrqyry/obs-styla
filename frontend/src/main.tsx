@@ -6,155 +6,112 @@ const root = document.getElementById('root')!
 root.innerHTML = `
   <div class="app">
     <header>
-      <h1>OBS Styla — Validator</h1>
-      <div class="controls">
-            <div class="left-controls">
-              <button id="validate">Refresh</button>
-              <input id="search" placeholder="Search filenames / messages" />
-              <label class="checkbox"><input id="errorsOnly" type="checkbox"/> Errors only</label>
-            </div>
-            <div class="right-controls">
-              <button id="export">Export JSON</button>
-              <span id="status" class="muted">idle</span>
-            </div>
-          </div>
+      <h1>OBS Styla</h1>
+      <nav class="tabs">
+        <button id="tab-gen" class="active">Generator</button>
+        <button id="tab-val">Validator</button>
+      </nav>
     </header>
     <main>
-      <div id="panel" class="panel">No data yet. Click Refresh.</div>
+      <section id="gen" class="panel">
+        <div class="controls">
+          <button id="generate">Run Generation</button>
+          <button id="refresh-themes">Refresh Themes</button>
+          <span id="gen-status" class="muted">idle</span>
+        </div>
+        <div id="gen-output" class="panel-inner">No generation run yet.</div>
+        <h3>Generated Themes</h3>
+        <ul id="themes-list"></ul>
+      </section>
+
+      <section id="val" class="panel" style="display:none">
+        <div class="controls">
+          <button id="validate">Run Validation</button>
+          <span id="val-status" class="muted">idle</span>
+        </div>
+        <div id="val-output" class="panel-inner">No validation run yet.</div>
+      </section>
     </main>
   </div>
 `
 
-let lastData: any = null
+// Tab switching
+document.getElementById('tab-gen')!.addEventListener('click', () => {
+  (document.getElementById('tab-gen') as HTMLElement).classList.add('active')
+  (document.getElementById('tab-val') as HTMLElement).classList.remove('active')
+  (document.getElementById('gen') as HTMLElement).style.display = 'block'
+  (document.getElementById('val') as HTMLElement).style.display = 'none'
+})
+document.getElementById('tab-val')!.addEventListener('click', () => {
+  (document.getElementById('tab-val') as HTMLElement).classList.add('active')
+  (document.getElementById('tab-gen') as HTMLElement).classList.remove('active')
+  (document.getElementById('gen') as HTMLElement).style.display = 'none'
+  (document.getElementById('val') as HTMLElement).style.display = 'block'
+})
 
-function filterAndRender() {
-  const q = (document.getElementById('search') as HTMLInputElement).value.trim().toLowerCase()
-  const errorsOnly = (document.getElementById('errorsOnly') as HTMLInputElement).checked
-  if (!lastData) return
-  const filtered = { validations: lastData.validations.filter((entry: any) => {
-    const name = (entry.name || '').toLowerCase()
-    const reportString = JSON.stringify(entry.report || {}).toLowerCase()
-    if (q && !(name.includes(q) || reportString.includes(q))) return false
-    if (errorsOnly) {
-      const errs = (entry.report && entry.report.summary && entry.report.summary.errors) || 0
-      return errs > 0
-    }
-    return true
-  }) }
-  renderReport(filtered)
-}
-
-function renderReport(data: any) {
-  const panel = document.getElementById('panel')!
-  if (!data || !Array.isArray(data.validations)) {
-    panel.innerHTML = `<div class="error">Invalid response</div>`
-    return
-  }
-
-  const list = document.createElement('div')
-  list.className = 'report-list'
-
-  data.validations.forEach((entry: any, index: number) => {
-    const box = document.createElement('div')
-    box.className = 'report-item'
-    box.key = `report-item-${index}`
-
-    const header = document.createElement('div')
-    header.className = 'report-header'
-    const name = document.createElement('div')
-    name.className = 'report-name'
-    name.textContent = entry.name || 'unknown'
-    const counts = document.createElement('div')
-    counts.className = 'report-counts'
-    const errors = (entry.report && entry.report.summary && entry.report.summary.errors) || 0
-    const warnings = (entry.report && entry.report.summary && entry.report.summary.warnings) || 0
-    counts.innerHTML = `<span class="err">Errors: ${errors}</span> <span class="warn">Warnings: ${warnings}</span>`
-
-    header.appendChild(name)
-    header.appendChild(counts)
-
-    const body = document.createElement('div')
-    body.className = 'report-body'
-    body.style.display = 'none'
-
-    if (entry.report) {
-      const errs = entry.report.errors || []
-      const warns = entry.report.warnings || []
-
-      const makeList = (items: any[], cls: string) => {
-        const ul = document.createElement('ul')
-        ul.className = cls
-        items.forEach(it => {
-          const li = document.createElement('li')
-          li.textContent = it.message || JSON.stringify(it)
-          ul.appendChild(li)
-        })
-        return ul
-      }
-
-      if (errs.length) {
-        const h = document.createElement('h4')
-        h.textContent = `Errors (${errs.length})`
-        body.appendChild(h)
-        body.appendChild(makeList(errs, 'errors'))
-      }
-      if (warns.length) {
-        const h = document.createElement('h4')
-        h.textContent = `Warnings (${warns.length})`
-        body.appendChild(h)
-        body.appendChild(makeList(warns, 'warnings'))
-      }
-      if (!errs.length && !warns.length) {
-        body.textContent = 'No issues found.'
-      }
-    } else {
-      body.textContent = 'No report available.'
-    }
-
-    header.addEventListener('click', () => {
-      body.style.display = body.style.display === 'none' ? 'block' : 'none'
-    })
-
-    box.appendChild(header)
-    box.appendChild(body)
-    list.appendChild(box)
-  })
-
-  panel.innerHTML = ''
-  panel.appendChild(list)
-}
-
-async function fetchAndRender() {
-  const status = document.getElementById('status')!
-  status.textContent = 'loading...'
+async function listThemes() {
+  const list = document.getElementById('themes-list')!
+  list.innerHTML = 'Loading...'
   try {
-    const r = await axios.get('/api/validate')
-    lastData = r.data
-    renderReport(r.data)
-    // wire filters/export
-    ;(document.getElementById('search') as HTMLInputElement).addEventListener('input', filterAndRender)
-    ;(document.getElementById('errorsOnly') as HTMLInputElement).addEventListener('change', filterAndRender)
-    ;(document.getElementById('export') as HTMLButtonElement).addEventListener('click', () => {
-      const blob = new Blob([JSON.stringify(lastData, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
+    const r = await axios.get('/api/themes')
+    const themes = r.data.themes || []
+    list.innerHTML = ''
+    themes.forEach((t: any) => {
+      const li = document.createElement('li')
       const a = document.createElement('a')
-      a.href = url
-      a.download = 'validation-report.json'
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      URL.revokeObjectURL(url)
+      a.href = `/api/themes/${encodeURIComponent(t.name)}`
+      a.textContent = `${t.name} (${t.size} bytes)`
+      a.target = '_blank'
+      li.appendChild(a)
+      list.appendChild(li)
     })
-    status.textContent = 'last updated'
+    if (themes.length === 0) list.innerHTML = '<li>No themes found</li>'
   } catch (e: any) {
-    const panel = document.getElementById('panel')!
-    panel.innerHTML = `<div class="error">Error fetching validation report: ${String(e)}</div>`
+    list.innerHTML = `<li class="error">Error listing themes: ${String(e)}</li>`
+  }
+}
+
+document.getElementById('refresh-themes')!.addEventListener('click', listThemes)
+
+document.getElementById('generate')!.addEventListener('click', async () => {
+  const out = document.getElementById('gen-output')!
+  const status = document.getElementById('gen-status')!
+  status.textContent = 'running...'
+  out.textContent = 'Running generation scripts...'
+  try {
+    const r = await axios.post('/api/generate')
+    out.innerHTML = ''
+    const results = r.data.results || []
+    results.forEach((res: any) => {
+      const pre = document.createElement('pre')
+      pre.textContent = `${res.script} -> exit ${res.returncode}\nstdout:\n${res.stdout}\nstderr:\n${res.stderr}`
+      out.appendChild(pre)
+    })
+    await listThemes()
+    status.textContent = 'done'
+  } catch (e: any) {
+    out.innerHTML = `<div class="error">Generation failed: ${String(e)}</div>`
     status.textContent = 'error'
   }
-}
+})
 
-document.getElementById('validate')!.addEventListener('click', fetchAndRender)
+// Validator: reuse existing validation UI but simpler
+document.getElementById('validate')!.addEventListener('click', async () => {
+  const out = document.getElementById('val-output')!
+  const status = document.getElementById('val-status')!
+  status.textContent = 'running...'
+  out.textContent = 'Running validation...'
+  try {
+    const r = await axios.get('/api/validate')
+    out.innerHTML = '<pre>' + JSON.stringify(r.data, null, 2) + '</pre>'
+    status.textContent = 'done'
+  } catch (e: any) {
+    out.innerHTML = `<div class="error">Validation failed: ${String(e)}</div>`
+    status.textContent = 'error'
+  }
+})
 
-// Auto-fetch on load
-fetchAndRender()
+// Auto-load themes on start
+listThemes()
+
 

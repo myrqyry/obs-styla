@@ -1,31 +1,24 @@
 const express = require('express')
-const { execFile } = require('child_process')
-const path = require('path')
+const { createProxyMiddleware } = require('http-proxy-middleware')
 const cors = require('cors')
+const path = require('path')
 const app = express()
 const PORT = process.env.PORT || 3000
 
-// allow Vite dev server origin by default
-app.use(cors({ origin: (origin, cb) => cb(null, true) }))
+// Allow requests from dev frontend, and parse JSON
+app.use(cors())
 app.use(express.json())
 
-// Simple proxy: call python validator script (we'll create a small wrapper)
-app.get('/api/validate', (req, res) => {
-  const py = path.join(__dirname, '..', 'app', 'server.py')
-  // The existing app/server.py exposes /api/validate when run as a Flask app.
-  // For now call the Flask server endpoint if running; fallback to executing a helper script `app/validate_cli.py`.
-  const cli = path.join(__dirname, '..', 'app', 'validate_cli.py')
-  execFile('python3', [cli], { cwd: path.join(__dirname, '..') }, (err, stdout, stderr) => {
-    if (err) {
-      return res.status(500).json({ error: String(err), stderr: stderr })
-    }
-    try {
-      const data = JSON.parse(stdout)
-      res.json(data)
-    } catch (e) {
-      res.status(500).json({ error: 'Failed to parse Python output', raw: stdout })
-    }
-  })
-})
+// Proxy /api to the Python Flask backend running on port 5000
+const PY_TARGET = process.env.PY_TARGET || 'http://127.0.0.1:5000'
+app.use('/api', createProxyMiddleware({
+  target: PY_TARGET,
+  changeOrigin: true,
+  pathRewrite: { '^/api': '/api' },
+  logLevel: 'warn',
+}))
 
-app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`))
+// Optional: serve a small health endpoint
+app.get('/health', (_, res) => res.json({ ok: true }))
+
+app.listen(PORT, () => console.log(`Backend proxy running on http://localhost:${PORT} -> ${PY_TARGET}`))
