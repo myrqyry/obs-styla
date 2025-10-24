@@ -6,11 +6,11 @@ import MetaEditor from './MetaEditor';
 import './style.css';
 
 const App = () => {
-  const [themes, setThemes] = useState<any[]>([]);
+  const [themes, setThemes] = useState<Theme[]>([]);
   const [activeTab, setActiveTab] = useState('gen');
   const [genOutput, setGenOutput] = useState('No generation run yet.');
   const [valOutput, setValOutput] = useState('No validation run yet.');
-  const [editingTheme, setEditingTheme] = useState<any>(null);
+  const [editingTheme, setEditingTheme] = useState<EditingTheme | null>(null);
 
   const listThemes = async () => {
     try {
