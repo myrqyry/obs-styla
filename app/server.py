@@ -317,7 +317,7 @@ def api_theme_meta(filename: str):
 
             new_meta_content = "\n"
             for key, value in new_meta.items():
-                new_meta_content += f"    {key}: '{value}',\n"
+                new_meta_content += f"    {key}: {json.dumps(str(value))},\n"
 
             new_text, count = meta_block_re.sub(r"\1" + new_meta_content + r"\3", text, 1)
 
