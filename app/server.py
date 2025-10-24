@@ -255,7 +255,7 @@ def api_theme_delete(filename: str):
     try:
         secure_path.unlink()
         return jsonify({"success": True, "message": f"Theme '{filename}' deleted."})
-    except Exception as e:
+    except OSError as e:
         return jsonify({"error": f"Error deleting theme: {e}"}), 500
 
 
