@@ -242,6 +242,94 @@ def api_theme_download(filename: str):
     return send_from_directory(str(ROOT), filename, as_attachment=True)
 
 
+@app.route("/api/themes/<path:filename>", methods=["DELETE"])
+def api_theme_delete(filename: str):
+    # Security: only allow files from the repository root
+    secure_path = Path(ROOT).joinpath(filename).resolve()
+    if ROOT.resolve() not in secure_path.parents:
+        return jsonify({"error": "Invalid filename"}), 400
+
+    if not secure_path.exists():
+        return jsonify({"error": "Not found"}), 404
+
+    try:
+        secure_path.unlink()
+        return jsonify({"success": True, "message": f"Theme '{filename}' deleted."})
+    except OSError as e:
+        return jsonify({"error": f"Error deleting theme: {e}"}), 500
+
+
+@app.route("/api/themes/<path:filename>/duplicate", methods=["POST"])
+def api_theme_duplicate(filename: str):
+    # Security: only allow files from the repository root
+    secure_path = Path(ROOT).joinpath(filename).resolve()
+    if ROOT.resolve() not in secure_path.parents:
+        return jsonify({"error": "Invalid filename"}), 400
+
+    if not secure_path.exists():
+        return jsonify({"error": "Not found"}), 404
+
+    new_name = request.json.get("new_name")
+    if not new_name:
+        return jsonify({"error": "Missing new_name"}), 400
+
+    new_path = Path(ROOT).joinpath(new_name).resolve()
+    if ROOT.resolve() not in new_path.parents:
+        return jsonify({"error": "Invalid new_name"}), 400
+
+    if new_path.exists():
+        return jsonify({"error": "File with new_name already exists"}), 400
+
+    try:
+        import shutil
+        shutil.copy(secure_path, new_path)
+        return jsonify({"success": True, "message": f"Theme '{filename}' duplicated to '{new_name}'."})
+    except Exception as e:
+        return jsonify({"error": f"Error duplicating theme: {e}"}), 500
+
+
+@app.route("/api/themes/<path:filename>/meta", methods=["GET", "POST"])
+def api_theme_meta(filename: str):
+    # Security: only allow files from the repository root
+    secure_path = Path(ROOT).joinpath(filename).resolve()
+    if ROOT.resolve() not in secure_path.parents:
+        return jsonify({"error": "Invalid filename"}), 400
+
+    if not secure_path.exists():
+        return jsonify({"error": "Not found"}), 404
+
+    if request.method == "GET":
+        try:
+            text = secure_path.read_text(encoding='utf-8')
+            report = validate_theme_content(text)
+            return jsonify(report["meta"])
+        except Exception as e:
+            return jsonify({"error": f"Error reading theme: {e}"}), 500
+
+    if request.method == "POST":
+        new_meta = request.json.get("meta")
+        if not new_meta:
+            return jsonify({"error": "Missing meta"}), 400
+
+        try:
+            text = secure_path.read_text(encoding='utf-8')
+            meta_block_re = re.compile(r"(@OBSThemeMeta\s*\{)([\s\S]*?)(\})")
+
+            new_meta_content = "\n"
+            for key, value in new_meta.items():
+                new_meta_content += f"    {key}: {json.dumps(str(value))},\n"
+
+            new_text, count = meta_block_re.sub(r"\1" + new_meta_content + r"\3", text, 1)
+
+            if count == 0:
+                return jsonify({"error": "Could not find @OBSThemeMeta block"}), 500
+
+            secure_path.write_text(new_text, encoding='utf-8')
+            return jsonify({"success": True, "message": "Theme metadata updated."})
+        except Exception as e:
+            return jsonify({"error": f"Error updating metadata: {e}"}), 500
+
+
 @app.route("/api/generate", methods=["POST"])
 def api_generate():
     """Run the included generation scripts to (re)create theme files.
