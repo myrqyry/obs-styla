@@ -136,7 +136,7 @@ const App = () => {
               <button onClick={handleGenerate}>Run Generation</button>
               <button onClick={listThemes}>Refresh Themes</button>
             </div>
-            <div className="panel-inner">{genOutput}</div>
+            <div className="panel-inner"><pre>{genOutput}</pre></div>
             <h3>Generated Themes</h3>
             <ul id="themes-list">
               {themes.map((t) => (
