@@ -55,7 +55,7 @@ def find_theme_files() -> List[dict]:
     return results
 
 
-from .validation import validate_theme_content
+from validation import validate_theme_content
 
 
 @app.route("/")

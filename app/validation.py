@@ -1,5 +1,63 @@
 import re
 
+# Module-level constants for performance and clarity
+HEX_RE = re.compile(r"^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$")
+RGB_RE = re.compile(r"^rgba?\(.*\)$", re.I)
+VAR_REF_RE = re.compile(r"var\(--([a-zA-Z0-9_-]+)\)")
+ID_RE = re.compile(
+    r"^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?)+$"
+)
+REQUIRED_VARS = [
+    "base",
+    "mantle",
+    "crust",
+    "surface0",
+    "surface1",
+    "surface2",
+    "overlay0",
+    "overlay1",
+    "overlay2",
+    "text",
+    "subtext0",
+    "subtext1",
+]
+
+
+def _process_variable(name, value, line_no, declared, report):
+    """Helper to process a parsed variable, checking for color and duplicates."""
+    entry = {"name": name, "value": value, "line": line_no}
+
+    # Detect and validate color-like values
+    looks_like_color = value.startswith("#") or value.lower().startswith(("rgb", "hsl"))
+    entry["looks_like_color"] = looks_like_color
+    if looks_like_color:
+        valid_color = bool(HEX_RE.match(value) or RGB_RE.match(value))
+        entry["color_valid"] = valid_color
+        if not valid_color:
+            report["errors"].append(
+                {
+                    "code": "VAR_COLOR_INVALID",
+                    "message": f"Variable {name} contains invalid color value: {value}",
+                    "line": line_no,
+                    "value": value,
+                }
+            )
+
+    report["vars"].append(entry)
+
+    # Check for duplicates
+    if name in declared:
+        report["warnings"].append(
+            {
+                "code": "VAR_DUPLICATE",
+                "message": f"Duplicate variable declaration: {name}",
+                "first_line": declared[name],
+                "line": line_no,
+                "name": name,
+            }
+        )
+    declared[name] = line_no
+
 
 def validate_theme_content(text: str) -> dict:
     """Full validation pipeline for OBS theme files.
@@ -11,16 +69,6 @@ def validate_theme_content(text: str) -> dict:
       - warnings: non-fatal suggestions
       - summary counts
     """
-    import re
-
-    # helpers / regexes
-    HEX_RE = re.compile(r"^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$")
-    RGB_RE = re.compile(r"^rgba?\(.*\)$", re.I)
-    VAR_REF_RE = re.compile(r"var\(--([a-zA-Z0-9_-]+)\)")
-    ID_RE = re.compile(
-        r"^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?)+$"
-    )
-
     report = {"meta": {}, "vars": [], "errors": [], "warnings": [], "summary": {}}
 
     # --- find blocks (flexible parsing) ---
@@ -101,74 +149,19 @@ def validate_theme_content(text: str) -> dict:
             continue
 
         # CSS-style: --var-name: value;
-        m = re.match(r"--([a-zA-Z0-9_-]+)\s*:\s*(.+?);?$", line)
-        if m:
-            name = m.group(1)
-            value = m.group(2).strip()
-            entry = {"name": name, "value": value, "line": line_no}
-            # detect color-like
-            looks_like_color = False
-            if value.startswith("#") or value.lower().startswith(("rgb", "hsl")):
-                looks_like_color = True
-            entry["looks_like_color"] = looks_like_color
-            # validate color if color-like
-            if looks_like_color:
-                valid_color = bool(HEX_RE.match(value) or RGB_RE.match(value))
-                entry["color_valid"] = valid_color
-                if not valid_color:
-                    report["errors"].append(
-                        {
-                            "code": "VAR_COLOR_INVALID",
-                            "message": f"Variable {name} contains invalid color value: {value}",
-                            "line": line_no,
-                            "value": value,
-                        }
-                    )
-
-            report["vars"].append(entry)
-            if name in declared:
-                report["warnings"].append(
-                    {
-                        "code": "VAR_DUPLICATE",
-                        "message": f"Duplicate variable declaration: {name}",
-                        "first_line": declared[name],
-                        "line": line_no,
-                        "name": name,
-                    }
-                )
-            declared[name] = line_no
+        m_css = re.match(r"--([a-zA-Z0-9_-]+)\s*:\s*(.+?);?$", line)
+        if m_css:
+            name = m_css.group(1)
+            value = m_css.group(2).strip()
+            _process_variable(name, value, line_no, declared, report)
             continue
 
         # YAML-like: name: value
-        m2 = re.match(r"([a-zA-Z0-9_-]+)\s*:\s*(.+)$", line)
-        if m2:
-            name = m2.group(1)
-            value = m2.group(2).strip().rstrip(",;")
-            entry = {"name": name, "value": value, "line": line_no, "looks_like_color": False}
-            if value.startswith("#") or value.lower().startswith(("rgb", "hsl")):
-                entry["looks_like_color"] = True
-                entry["color_valid"] = bool(HEX_RE.match(value) or RGB_RE.match(value))
-                if not entry.get("color_valid", True):
-                    report["errors"].append(
-                        {
-                            "code": "VAR_COLOR_INVALID",
-                            "message": f"Variable {name} contains invalid color value: {value}",
-                            "line": line_no,
-                            "value": value,
-                        }
-                    )
-            report["vars"].append(entry)
-            if name in declared:
-                report["warnings"].append(
-                    {
-                        "code": "VAR_DUPLICATE",
-                        "message": f"Duplicate variable declaration: {name}",
-                        "first_line": declared[name],
-                        "line": line_no,
-                        "name": name,
-                    }
-                )
-            declared[name] = line_no
+        m_yaml = re.match(r"([a-zA-Z0-9_-]+)\s*:\s*(.+)$", line)
+        if m_yaml:
+            name = m_yaml.group(1)
+            value = m_yaml.group(2).strip().rstrip(",;")
+            _process_variable(name, value, line_no, declared, report)
             continue
 
         # unrecognized line inside vars
@@ -211,20 +204,6 @@ def validate_theme_content(text: str) -> dict:
                     )
 
     # --- required semantic variables (configurable) ---
-    REQUIRED_VARS = [
-        "base",
-        "mantle",
-        "crust",
-        "surface0",
-        "surface1",
-        "surface2",
-        "overlay0",
-        "overlay1",
-        "overlay2",
-        "text",
-        "subtext0",
-        "subtext1",
-    ]
     present = set(declared.keys())
     for rv in REQUIRED_VARS:
         if rv not in present:
