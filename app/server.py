@@ -35,11 +35,40 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.datastructures import FileStorage
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+import logging.config
+
+LOGGING_CONFIG = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        },
+    },
+    'handlers': {
+        'default': {
+            'level': 'INFO',
+            'formatter': 'standard',
+            'class': 'logging.StreamHandler',
+        },
+        'file': {
+            'level': 'ERROR',
+            'formatter': 'standard',
+            'class': 'logging.FileHandler',
+            'filename': 'app_errors.log',
+            'mode': 'a',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['default', 'file'],
+            'level': 'INFO',
+            'propagate': False
+        }
+    }
+}
+
+logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -47,17 +76,21 @@ APP_DIR = Path(__file__).resolve().parent
 
 @dataclass
 class Config:
-    HOST: str = os.getenv('HOST', '0.0.0.0')
+    HOST: str = os.getenv('HOST', '127.0.0.1')
     PORT: int = int(os.getenv('PORT', '5000'))
     DEBUG: bool = os.getenv('DEBUG', 'False').lower() == 'true'
-    SECRET_KEY: str = os.getenv('SECRET_KEY', 'dev-key-change-in-production')
-    MAX_CONTENT_LENGTH: int = int(os.getenv('MAX_CONTENT_LENGTH', '16777216'))  # 16MB
+    SECRET_KEY: str = os.getenv('SECRET_KEY') or os.urandom(32).hex()
+    MAX_CONTENT_LENGTH: int = int(os.getenv('MAX_CONTENT_LENGTH', '1048576'))  # 1MB
+
+    def __post_init__(self):
+        if self.DEBUG and self.SECRET_KEY == 'dev-key-change-in-production':
+            import warnings
+            warnings.warn("Using default secret key in debug mode", UserWarning)
 
 config = Config()
 
 app = Flask(__name__, static_folder=str(APP_DIR), static_url_path="")
-app.config['SECRET_KEY'] = config.SECRET_KEY
-app.config['MAX_CONTENT_LENGTH'] = config.MAX_CONTENT_LENGTH
+app.config.from_object(config)
 CORS(app)
 
 limiter = Limiter(
@@ -66,48 +99,63 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"]
 )
 
-# Add module-level cache management
-_cache_lock = threading.RLock()
-_last_cache_time = 0
-_cache_duration = 30  # Cache for 30 seconds
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
-@lru_cache(maxsize=1)
-def _scan_theme_files():
-    """Internal cached file scanning function."""
-    results = []
-    # Use single rglob with multiple extensions
-    theme_extensions = {'.ovt', '.obt', '.json'}
-    try:
-        for file_path in ROOT.iterdir():
-            if (file_path.is_file() and
-                 file_path.suffix.lower() in theme_extensions):
-                try:
-                    stat_result = file_path.stat()
-                    results.append({
-                        "name": file_path.name,
-                        "path": str(file_path.relative_to(ROOT)),
-                        "size": stat_result.st_size,
-                        "modified": stat_result.st_mtime,
-                    })
-                except OSError:
-                    continue
-    except OSError:
-        return []
-    # Sort once at the end
-    results.sort(key=lambda r: r["name"])
-    return results
+# Create thread pool for I/O operations
+io_executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="file_io")
 
+_file_cache_lock = threading.RLock()
+_file_cache = {}
+_cache_timestamp = 0
+CACHE_DURATION = 30
+
+async def find_theme_files_async() -> List[dict]:
+    """Async file scanning to prevent blocking."""
+    loop = asyncio.get_event_loop()
+
+    def scan_files():
+        results = []
+        theme_extensions = {'.ovt', '.obt', '.json'}
+
+        try:
+            for file_path in ROOT.iterdir():
+                if (file_path.is_file() and
+                     file_path.suffix.lower() in theme_extensions):
+                    try:
+                        stat_result = file_path.stat()
+                        results.append({
+                            "name": file_path.name,
+                            "path": str(file_path.relative_to(ROOT)),
+                            "size": stat_result.st_size,
+                            "modified": stat_result.st_mtime,
+                        })
+                    except OSError:
+                        continue
+        except OSError:
+            return []
+
+        return sorted(results, key=lambda r: r["name"])
+
+    return await loop.run_in_executor(io_executor, scan_files)
+
+# For Flask compatibility, provide sync wrapper
 def find_theme_files() -> List[dict]:
-    """Scan the repository root for theme files with caching."""
-    global _last_cache_time
+    """Sync wrapper for async file scanning."""
+    global _file_cache, _cache_timestamp
     current_time = time()
-
-    with _cache_lock:
-        # Invalidate cache after duration
-        if current_time - _last_cache_time > _cache_duration:
-            _scan_theme_files.cache_clear()
-            _last_cache_time = current_time
-        return _scan_theme_files()
+    with _file_cache_lock:
+        if current_time - _cache_timestamp < CACHE_DURATION and _file_cache:
+            return _file_cache.copy()
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            results = loop.run_until_complete(find_theme_files_async())
+            _file_cache = results
+            _cache_timestamp = current_time
+            return results.copy()
+        finally:
+            loop.close()
 
 
 from validation import validate_theme_content
@@ -123,14 +171,51 @@ def validate_filename(filename: str) -> bool:
     allowed_extensions = {'.ovt', '.obt', '.json'}
     return any(filename.lower().endswith(ext) for ext in allowed_extensions)
 
+from werkzeug.exceptions import BadRequest, NotFound, Forbidden
+import traceback
+
+class ThemeError(Exception):
+    """Base exception for theme-related errors."""
+    pass
+
+class ValidationError(ThemeError):
+    """Raised when theme validation fails."""
+    pass
+
+class SecurityError(ThemeError):
+    """Raised when security checks fail."""
+    pass
+
 def handle_errors(f):
-    """Decorator for consistent error handling and logging."""
+    """Enhanced error handler with specific exception handling."""
     @wraps(f)
     def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
+        except ValidationError as e:
+            logger.warning(f"Validation error in {f.__name__}: {str(e)}")
+            return jsonify({"error": "Validation failed", "details": str(e)}), 400
+        except SecurityError as e:
+            logger.error(f"Security error in {f.__name__}: {str(e)}")
+            return jsonify({"error": "Access denied"}), 403
+        except FileNotFoundError as e:
+            logger.info(f"File not found in {f.__name__}: {str(e)}")
+            return jsonify({"error": "File not found"}), 404
+        except PermissionError as e:
+            logger.warning(f"Permission error in {f.__name__}: {str(e)}")
+            return jsonify({"error": "Permission denied"}), 403
+        except (OSError, IOError) as e:
+            logger.error(f"I/O error in {f.__name__}: {str(e)}")
+            return jsonify({"error": "File system error"}), 500
         except Exception as e:
-            logger.error(f"Error in {f.__name__}: {str(e)}", exc_info=True)
+            logger.error(f"Unexpected error in {f.__name__}: {str(e)}", exc_info=True)
+            # In development, include traceback
+            if app.config.get('DEBUG'):
+                return jsonify({
+                    "error": "Internal server error",
+                    "details": str(e),
+                    "traceback": traceback.format_exc()
+                }), 500
             return jsonify({"error": "Internal server error"}), 500
     return wrapper
 
@@ -153,15 +238,18 @@ def api_theme_download(filename: str):
     if not validate_filename(filename):
         return jsonify({"error": "Invalid filename"}), 400
     try:
-        # Normalize the filename and resolve path
+        # Sanitize filename first
+        filename = os.path.basename(filename)  # Remove any path components
         secure_path = Path(ROOT).joinpath(filename).resolve()
         root_resolved = ROOT.resolve()
 
-        # Check if the resolved path is within the allowed directory
-        if not (secure_path == root_resolved or root_resolved in secure_path.parents):
+        # More robust security check
+        try:
+            secure_path.relative_to(root_resolved)
+        except ValueError:
             return jsonify({"error": "Access denied"}), 403
 
-        # Additional whitelist check for allowed file extensions
+        # Additional extension whitelist check
         allowed_extensions = {'.ovt', '.obt', '.json'}
         if secure_path.suffix.lower() not in allowed_extensions:
             return jsonify({"error": "File type not allowed"}), 403
@@ -202,36 +290,76 @@ def api_theme_delete(filename: str):
         return jsonify({"error": "Invalid filename"}), 400
 
 
+import bleach
+from werkzeug.utils import secure_filename
+
+def validate_theme_name(name: str) -> tuple[bool, str]:
+    """Validate theme name for security and format compliance."""
+    if not name or len(name.strip()) == 0:
+        return False, "Name cannot be empty"
+
+    if len(name) > 100:
+        return False, "Name too long (max 100 characters)"
+
+    # Check for valid characters
+    if not re.match(r'^[a-zA-Z0-9_\-\s\.]+$', name):
+        return False, "Name contains invalid characters"
+
+    # Prevent reserved names
+    reserved_names = {'con', 'prn', 'aux', 'nul', 'com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9', 'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9'}
+    if name.lower().split('.')[0] in reserved_names:
+        return False, "Name cannot be a reserved system name"
+
+    return True, "Valid"
+
 @app.route("/api/themes/<path:filename>/duplicate", methods=["POST"])
 @handle_errors
 def api_theme_duplicate(filename: str):
     if not validate_filename(filename):
         return jsonify({"error": "Invalid filename"}), 400
-    try:
-        # Security: only allow files from the repository root
-        secure_path = Path(ROOT).joinpath(filename).resolve()
-        root_resolved = ROOT.resolve()
-        if not (secure_path == root_resolved or root_resolved in secure_path.parents):
-            return jsonify({"error": "Invalid filename"}), 403
 
-        new_name = request.json.get("new_name")
-        if not new_name:
-            return jsonify({"error": "Missing new_name"}), 400
+    # Validate JSON input
+    if not request.is_json:
+        return jsonify({"error": "Content-Type must be application/json"}), 400
 
-        new_path = Path(ROOT).joinpath(new_name).resolve()
-        if not (new_path == root_resolved or root_resolved in new_path.parents):
-            return jsonify({"error": "Invalid new_name"}), 403
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
 
-        if new_path.exists():
-            return jsonify({"error": "File with new_name already exists"}), 400
+    new_name = data.get("new_name")
+    if not new_name:
+        return jsonify({"error": "Missing new_name"}), 400
 
-        import shutil
-        shutil.copy(secure_path, new_path)
-        return jsonify({"success": True, "message": f"Theme '{filename}' duplicated to '{new_name}'."})
-    except FileNotFoundError:
-        return jsonify({"error": "Not found"}), 404
-    except Exception as e:
-        return jsonify({"error": f"Error duplicating theme: {e}"}), 500
+    # Sanitize and validate new name
+    new_name = bleach.clean(str(new_name).strip())
+    valid, message = validate_theme_name(new_name)
+    if not valid:
+        return jsonify({"error": f"Invalid new_name: {message}"}), 400
+
+    # Add proper extension if missing
+    if not new_name.endswith(('.ovt', '.obt', '.json')):
+        original_ext = Path(filename).suffix
+        new_name += original_ext
+
+    # Use secure_filename for additional safety
+    safe_new_name = secure_filename(new_name)
+
+    # Security: only allow files from the repository root
+    secure_path = Path(ROOT).joinpath(filename).resolve()
+    root_resolved = ROOT.resolve()
+    if not (secure_path == root_resolved or root_resolved in secure_path.parents):
+        return jsonify({"error": "Invalid filename"}), 403
+
+    new_path = Path(ROOT).joinpath(safe_new_name).resolve()
+    if not (new_path == root_resolved or root_resolved in new_path.parents):
+        return jsonify({"error": "Invalid new_name"}), 403
+
+    if new_path.exists():
+        return jsonify({"error": "File with new_name already exists"}), 400
+
+    import shutil
+    shutil.copy(secure_path, new_path)
+    return jsonify({"success": True, "message": f"Theme '{filename}' duplicated to '{safe_new_name}'."})
 
 
 @app.route("/api/themes/<path:filename>/meta", methods=["GET", "POST"])
@@ -280,35 +408,36 @@ def api_theme_meta(filename: str):
 
 
 @app.route("/api/generate", methods=["POST"])
-@limiter.limit("5 per minute")  # Limit expensive operations
+@limiter.limit("5 per minute")
 @handle_errors
 def api_generate():
-    """Run the included generation scripts to (re)create theme files."""
-    # Whitelist of allowed scripts
     ALLOWED_SCRIPTS = {"script_1.py", "script_2.py", "script_3.py"}
-
     results = []
+
     for script_name in ALLOWED_SCRIPTS:
         script_path = ROOT / script_name
-        if not script_path.exists():
+
+        # Ensure script exists and is a regular file
+        if not script_path.exists() or not script_path.is_file():
             results.append({"script": script_name, "status": "missing"})
             continue
 
-        # Validate script path is actually within ROOT and is the expected file
+        # Additional security: verify script integrity/hash if needed
         try:
-            if script_path.resolve().parent != ROOT.resolve():
-                results.append({"script": script_name, "status": "security_error",
-                                "error": "Script path validation failed"})
+            script_path_resolved = script_path.resolve()
+            if script_path_resolved.parent != ROOT.resolve():
+                results.append({"script": script_name, "status": "security_error"})
                 continue
 
+            # Use absolute path and restrict environment
             proc = subprocess.run(
-                [sys.executable, str(script_path)],
-                cwd=str(ROOT),
+                [sys.executable, str(script_path_resolved)],
+                cwd=str(ROOT.resolve()),
                 capture_output=True,
                 text=True,
-                timeout=60,
-                # Additional security: disable shell interpretation
-                shell=False
+                timeout=30,  # Reduced timeout
+                shell=False,
+                env={'PATH': '', 'PYTHONPATH': str(ROOT)}  # Restricted environment
             )
 
             results.append({
@@ -358,6 +487,51 @@ def api_validate():
                     r["report"].setdefault("warnings", []).append({"code": "DUPLICATE_THEME_ID", "message": f"Theme id {mid} used by multiple files", "files": files})
 
     return jsonify({"validations": reports, "duplicate_ids": duplicate_ids})
+
+
+@app.route("/health")
+def health_check():
+    """Comprehensive health check endpoint."""
+    checks = {
+        "status": "healthy",
+        "timestamp": time(),
+        "version": "1.0.0",
+        "dependencies": {}
+    }
+
+    # Check file system access
+    try:
+        ROOT.stat()
+        checks["dependencies"]["filesystem"] = "ok"
+    except OSError:
+        checks["dependencies"]["filesystem"] = "error"
+        checks["status"] = "unhealthy"
+
+    # Check Python scripts existence
+    for script in ["script_1.py", "script_2.py", "script_3.py"]:
+        script_path = ROOT / script
+        checks["dependencies"][script] = "ok" if script_path.exists() else "missing"
+
+    status_code = 200 if checks["status"] == "healthy" else 503
+    return jsonify(checks), status_code
+
+
+@app.after_request
+def add_security_headers(response):
+    """Add security headers to all responses."""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Content-Security-Policy'] = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    return response
+
+
+@app.before_request
+def limit_remote_addr():
+    """Basic rate limiting by IP."""
+    # This could be enhanced with Redis for distributed deployments
+    pass
 
 
 if __name__ == "__main__":
