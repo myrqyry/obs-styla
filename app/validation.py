@@ -25,23 +25,29 @@ REQUIRED_VARS = [
 
 def _process_variable(name, value, line_no, declared, report):
     """Helper to process a parsed variable, checking for color and duplicates."""
+    # Ensure value is a string and handle None cases
+    if value is None:
+        value = ""
+    elif not isinstance(value, str):
+        value = str(value)
+
     entry = {"name": name, "value": value, "line": line_no}
 
     # Detect and validate color-like values
-    looks_like_color = value.startswith("#") or value.lower().startswith(("rgb", "hsl"))
+    looks_like_color = (value.startswith("#") or
+                        value.lower().startswith(("rgb", "hsl"))) if value else False
     entry["looks_like_color"] = looks_like_color
-    if looks_like_color:
+
+    if looks_like_color and value:  # Only validate non-empty color values
         valid_color = bool(HEX_RE.match(value) or RGB_RE.match(value))
         entry["color_valid"] = valid_color
         if not valid_color:
-            report["errors"].append(
-                {
-                    "code": "VAR_COLOR_INVALID",
-                    "message": f"Variable {name} contains invalid color value: {value}",
-                    "line": line_no,
-                    "value": value,
-                }
-            )
+            report["errors"].append({
+                "code": "VAR_COLOR_INVALID",
+                "message": f"Variable {name} contains invalid color value: {value}",
+                "line": line_no,
+                "value": value,
+            })
 
     report["vars"].append(entry)
 
