@@ -1,12 +1,41 @@
 import re
 
-# Module-level constants for performance and clarity
-HEX_RE = re.compile(r"^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$")
-RGB_RE = re.compile(r"^rgba?\(.*\)$", re.I)
-VAR_REF_RE = re.compile(r"var\(--([a-zA-Z0-9_-]+)\)")
+# More precise regex patterns
+HEX_RE = re.compile(r"^#(?:[0-9A-Fa-f]{3}){1,2}(?:[0-9A-Fa-f]{2})?$")
+RGB_RE = re.compile(r"^rgba?\(\s*(\d+(?:\.\d+)?%?)\s*,\s*(\d+(?:\.\d+)?%?)\s*,\s*(\d+(?:\.\d+)?%?)\s*(?:,\s*(\d+(?:\.\d+)?))?\s*\)$", re.I)
+HSL_RE = re.compile(r"^hsla?\(\s*(\d+)\s*,\s*(\d+(?:\.\d+)?%)\s*,\s*(\d+(?:\.\d+)?%)\s*(?:,\s*(\d+(?:\.\d+)?))?\s*\)$", re.I)
+VAR_REF_RE = re.compile(r"var\(--([a-zA-Z0-9_-]+)(?:,\s*([^)]+))?\)")
 ID_RE = re.compile(
     r"^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?)+$"
 )
+
+
+def validate_color_value(value: str) -> tuple[bool, str]:
+    """Optimized color validation with specific format checking."""
+    if not value:
+        return False, "Empty color value"
+
+    value = value.strip()
+
+    # Check hex colors
+    if value.startswith('#'):
+        if HEX_RE.match(value):
+            return True, "valid_hex"
+        return False, "invalid_hex_format"
+
+    # Check RGB/RGBA
+    if value.lower().startswith(('rgb(', 'rgba(')):
+        if RGB_RE.match(value):
+            return True, "valid_rgb"
+        return False, "invalid_rgb_format"
+
+    # Check HSL/HSLA
+    if value.lower().startswith(('hsl(', 'hsla(')):
+        if HSL_RE.match(value):
+            return True, "valid_hsl"
+        return False, "invalid_hsl_format"
+
+    return False, "unknown_color_format"
 REQUIRED_VARS = [
     "base",
     "mantle",
@@ -23,13 +52,34 @@ REQUIRED_VARS = [
 ]
 
 
+MAX_VARIABLES = 1000
+MAX_VALUE_LENGTH = 1000
+
+
 def _process_variable(name, value, line_no, declared, report):
-    """Helper to process a parsed variable, checking for color and duplicates."""
-    # Ensure value is a string and handle None cases
+    """Helper to process a parsed variable with memory limits."""
+    # Prevent memory exhaustion attacks
+    if len(report.get("vars", [])) >= MAX_VARIABLES:
+        report["errors"].append({
+            "code": "TOO_MANY_VARIABLES",
+            "message": f"Maximum number of variables ({MAX_VARIABLES}) exceeded",
+            "line": line_no
+        })
+        return
+
+    # Limit value length
     if value is None:
         value = ""
     elif not isinstance(value, str):
         value = str(value)
+
+    if len(value) > MAX_VALUE_LENGTH:
+        value = value[:MAX_VALUE_LENGTH] + "..."
+        report["warnings"].append({
+            "code": "VALUE_TRUNCATED",
+            "message": f"Variable {name} value truncated to {MAX_VALUE_LENGTH} characters",
+            "line": line_no
+        })
 
     entry = {"name": name, "value": value, "line": line_no}
 
@@ -38,13 +88,13 @@ def _process_variable(name, value, line_no, declared, report):
                         value.lower().startswith(("rgb", "hsl"))) if value else False
     entry["looks_like_color"] = looks_like_color
 
-    if looks_like_color and value:  # Only validate non-empty color values
-        valid_color = bool(HEX_RE.match(value) or RGB_RE.match(value))
+    if looks_like_color and value:
+        valid_color, reason = validate_color_value(value)
         entry["color_valid"] = valid_color
         if not valid_color:
             report["errors"].append({
                 "code": "VAR_COLOR_INVALID",
-                "message": f"Variable {name} contains invalid color value: {value}",
+                "message": f"Variable {name} contains invalid color value: {value} ({reason})",
                 "line": line_no,
                 "value": value,
             })
