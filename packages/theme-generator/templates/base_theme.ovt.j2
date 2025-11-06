@@ -1,0 +1,20 @@
+@OBSThemeMeta {
+    name: '{{ config.name }}';
+    id: '{{ config.id }}';
+    {% if config.extends %}extends: '{{ config.extends }}';{% endif %}
+    author: '{{ config.author }}';
+    dark: '{{ "true" if config.dark else "false" }}';
+}
+
+@OBSThemeVars {
+    /* {{ palette_name }} Color Palette */
+    {% for name, color in colors.items() %}
+    --{{ name }}: {{ color }};
+    {% endfor %}
+}
+
+/* Base styles */
+QMainWindow {
+    background-color: var(--base);
+    color: var(--text);
+}

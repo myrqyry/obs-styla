@@ -34,6 +34,9 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.datastructures import FileStorage
+import bleach
+from werkzeug.utils import secure_filename
+import shutil
 
 import logging.config
 
@@ -119,7 +122,7 @@ async def find_theme_files_async() -> List[dict]:
         theme_extensions = {'.ovt', '.obt', '.json'}
 
         try:
-            for file_path in ROOT.iterdir():
+            for file_path in (ROOT / "packages").iterdir():
                 if (file_path.is_file() and
                      file_path.suffix.lower() in theme_extensions):
                     try:
@@ -232,179 +235,10 @@ def api_themes():
     return jsonify({"themes": find_theme_files()})
 
 
-@app.route("/api/themes/<path:filename>", methods=["GET"])
-@handle_errors
-def api_theme_download(filename: str):
-    if not validate_filename(filename):
-        return jsonify({"error": "Invalid filename"}), 400
-    try:
-        # Sanitize filename first
-        filename = os.path.basename(filename)  # Remove any path components
-        secure_path = Path(ROOT).joinpath(filename).resolve()
-        root_resolved = ROOT.resolve()
-
-        # More robust security check
-        try:
-            secure_path.relative_to(root_resolved)
-        except ValueError:
-            return jsonify({"error": "Access denied"}), 403
-
-        # Additional extension whitelist check
-        allowed_extensions = {'.ovt', '.obt', '.json'}
-        if secure_path.suffix.lower() not in allowed_extensions:
-            return jsonify({"error": "File type not allowed"}), 403
-
-        if not secure_path.exists() or not secure_path.is_file():
-            return jsonify({"error": "File not found"}), 404
-
-        return send_from_directory(str(ROOT), filename, as_attachment=True)
-
-    except (OSError, ValueError) as e:
-        return jsonify({"error": "Invalid file path"}), 400
+from app.routes.theme_routes import theme_bp
+app.register_blueprint(theme_bp)
 
 
-@app.route("/api/themes/<path:filename>", methods=["DELETE"])
-@handle_errors
-def api_theme_delete(filename: str):
-    if not validate_filename(filename):
-        return jsonify({"error": "Invalid filename"}), 400
-    try:
-        # Path validation code here (same as before)
-        secure_path = Path(ROOT).joinpath(filename).resolve()
-        root_resolved = ROOT.resolve()
-
-        if not (secure_path == root_resolved or root_resolved in secure_path.parents):
-            return jsonify({"error": "Access denied"}), 403
-
-        # Attempt deletion directly, handle FileNotFoundError
-        secure_path.unlink()
-        return jsonify({"success": True, "message": f"Theme '{filename}' deleted."})
-
-    except FileNotFoundError:
-        return jsonify({"error": "File not found"}), 404
-    except PermissionError:
-        return jsonify({"error": "Permission denied"}), 403
-    except OSError as e:
-        return jsonify({"error": f"Error deleting file: {str(e)}"}), 500
-    except (ValueError, TypeError):
-        return jsonify({"error": "Invalid filename"}), 400
-
-
-import bleach
-from werkzeug.utils import secure_filename
-
-def validate_theme_name(name: str) -> tuple[bool, str]:
-    """Validate theme name for security and format compliance."""
-    if not name or len(name.strip()) == 0:
-        return False, "Name cannot be empty"
-
-    if len(name) > 100:
-        return False, "Name too long (max 100 characters)"
-
-    # Check for valid characters
-    if not re.match(r'^[a-zA-Z0-9_\-\s\.]+$', name):
-        return False, "Name contains invalid characters"
-
-    # Prevent reserved names
-    reserved_names = {'con', 'prn', 'aux', 'nul', 'com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9', 'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9'}
-    if name.lower().split('.')[0] in reserved_names:
-        return False, "Name cannot be a reserved system name"
-
-    return True, "Valid"
-
-@app.route("/api/themes/<path:filename>/duplicate", methods=["POST"])
-@handle_errors
-def api_theme_duplicate(filename: str):
-    if not validate_filename(filename):
-        return jsonify({"error": "Invalid filename"}), 400
-
-    # Validate JSON input
-    if not request.is_json:
-        return jsonify({"error": "Content-Type must be application/json"}), 400
-
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Invalid JSON"}), 400
-
-    new_name = data.get("new_name")
-    if not new_name:
-        return jsonify({"error": "Missing new_name"}), 400
-
-    # Sanitize and validate new name
-    new_name = bleach.clean(str(new_name).strip())
-    valid, message = validate_theme_name(new_name)
-    if not valid:
-        return jsonify({"error": f"Invalid new_name: {message}"}), 400
-
-    # Add proper extension if missing
-    if not new_name.endswith(('.ovt', '.obt', '.json')):
-        original_ext = Path(filename).suffix
-        new_name += original_ext
-
-    # Use secure_filename for additional safety
-    safe_new_name = secure_filename(new_name)
-
-    # Security: only allow files from the repository root
-    secure_path = Path(ROOT).joinpath(filename).resolve()
-    root_resolved = ROOT.resolve()
-    if not (secure_path == root_resolved or root_resolved in secure_path.parents):
-        return jsonify({"error": "Invalid filename"}), 403
-
-    new_path = Path(ROOT).joinpath(safe_new_name).resolve()
-    if not (new_path == root_resolved or root_resolved in new_path.parents):
-        return jsonify({"error": "Invalid new_name"}), 403
-
-    if new_path.exists():
-        return jsonify({"error": "File with new_name already exists"}), 400
-
-    import shutil
-    shutil.copy(secure_path, new_path)
-    return jsonify({"success": True, "message": f"Theme '{filename}' duplicated to '{safe_new_name}'."})
-
-
-@app.route("/api/themes/<path:filename>/meta", methods=["GET", "POST"])
-@handle_errors
-def api_theme_meta(filename: str):
-    if not validate_filename(filename):
-        return jsonify({"error": "Invalid filename"}), 400
-    # Security: only allow files from the repository root
-    secure_path = Path(ROOT).joinpath(filename).resolve()
-    if ROOT.resolve() not in secure_path.parents:
-        return jsonify({"error": "Invalid filename"}), 400
-
-    if not secure_path.exists():
-        return jsonify({"error": "Not found"}), 404
-
-    if request.method == "GET":
-        try:
-            text = secure_path.read_text(encoding='utf-8')
-            report = validate_theme_content(text)
-            return jsonify(report["meta"])
-        except Exception as e:
-            return jsonify({"error": f"Error reading theme: {e}"}), 500
-
-    if request.method == "POST":
-        new_meta = request.json.get("meta")
-        if not new_meta:
-            return jsonify({"error": "Missing meta"}), 400
-
-        try:
-            text = secure_path.read_text(encoding='utf-8')
-            meta_block_re = re.compile(r"(@OBSThemeMeta\s*\{)([\s\S]*?)(\})")
-
-            new_meta_content = "\n"
-            for key, value in new_meta.items():
-                new_meta_content += f"    {key}: {json.dumps(str(value))},\n"
-
-            new_text, count = meta_block_re.sub(r"\1" + new_meta_content + r"\3", text, 1)
-
-            if count == 0:
-                return jsonify({"error": "Could not find @OBSThemeMeta block"}), 500
-
-            secure_path.write_text(new_text, encoding='utf-8')
-            return jsonify({"success": True, "message": "Theme metadata updated."})
-        except Exception as e:
-            return jsonify({"error": f"Error updating metadata: {e}"}), 500
 
 
 @app.route("/api/generate", methods=["POST"])

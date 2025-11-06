@@ -1,11 +1,32 @@
 {
   "name": "obs-styla",
   "private": true,
+  "workspaces": [
+    "packages/frontend",
+    "packages/backend",
+    "packages/theme-generator"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0",
   "scripts": {
-    "dev": "concurrently \"pnpm --prefix frontend dev\" \"pnpm --prefix backend dev\"",
-    "install-all": "pnpm install && (cd frontend && pnpm install) && (cd backend && pnpm install)"
+    "dev": "pnpm run --recursive --parallel dev",
+    "build": "pnpm run --recursive build",
+    "test": "pnpm run --recursive test",
+    "lint": "pnpm run --recursive lint",
+    "type-check": "pnpm run --recursive type-check",
+    "clean": "pnpm run --recursive clean && rm -rf node_modules",
+    "setup": "pnpm install && pnpm build"
   },
   "devDependencies": {
-    "concurrently": "^8.2.0"
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.45.0",
+    "eslint-config-prettier": "^8.8.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^0.34.0"
   }
 }
