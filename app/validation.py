@@ -200,7 +200,11 @@ def validate_theme_content(text: str) -> ValidationReport:
             value = value.strip()
             meta_data[key] = value
 
-    report["meta"] = meta_data
+    # Ensure the meta object has required keys, even if parsing fails, to prevent Pydantic errors.
+    # The checks below will still report them as missing.
+    final_meta = {"id": "default.id", "name": "Default Name", "dark": False, "extends": None}
+    final_meta.update(meta_data)
+    report["meta"] = final_meta
 
     # required meta keys
     for key in ("id", "name", "dark"):
