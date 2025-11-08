@@ -596,9 +596,8 @@ def run_upload_script():
 if __name__ == "__main__":
     if os.environ.get("GEMINI_API_KEY"):
         genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-        # Run the upload script in a background thread
-        upload_thread = threading.Thread(target=run_upload_script, daemon=True)
-        upload_thread.start()
+        # Run the upload script synchronously to ensure the search store is ready.
+        run_upload_script()
     else:
         logger.warning("GEMINI_API_KEY not set. Search functionality will be disabled.")
 
