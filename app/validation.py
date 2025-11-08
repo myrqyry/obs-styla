@@ -50,7 +50,8 @@ RGB_RE = re.compile(r"^rgba?\(\s*(\d+(?:\.\d+)?%?)\s*,\s*(\d+(?:\.\d+)?%?)\s*,\s
 HSL_RE = re.compile(r"^hsla?\(\s*(\d+)\s*,\s*(\d+(?:\.\d+)?%)\s*,\s*(\d+(?:\.\d+)?%)\s*(?:,\s*(\d+(?:\.\d+)?))?\s*\)$", re.I)
 VAR_REF_RE = re.compile(r"var\(--([a-zA-Z0-9_-]+)(?:,\s*([^)]+))?\)")
 ID_RE = re.compile(
-    r"^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?)+$"
+    r"^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?)+$",
+    re.IGNORECASE
 )
 
 
@@ -199,7 +200,11 @@ def validate_theme_content(text: str) -> ValidationReport:
             value = value.strip()
             meta_data[key] = value
 
-    report["meta"] = meta_data
+    # Ensure the meta object has required keys, even if parsing fails, to prevent Pydantic errors.
+    # The checks below will still report them as missing.
+    final_meta = {"id": "default.id", "name": "Default Name", "dark": False, "extends": None}
+    final_meta.update(meta_data)
+    report["meta"] = final_meta
 
     # required meta keys
     for key in ("id", "name", "dark"):
@@ -247,7 +252,7 @@ def validate_theme_content(text: str) -> ValidationReport:
             continue
 
         # CSS-style: --var-name: value;
-        m_css = re.match(r"--([a-zA-Z0-9_-]+)\s*:\s*(.+?);?$", line)
+        m_css = re.match(r"--([a-zA-Z0-9_]+)\s*:\s*(.+?);?$", line)
         if m_css:
             name = m_css.group(1)
             value = m_css.group(2).strip()
@@ -255,7 +260,7 @@ def validate_theme_content(text: str) -> ValidationReport:
             continue
 
         # YAML-like: name: value
-        m_yaml = re.match(r"([a-zA-Z0-9_-]+)\s*:\s*(.+)$", line)
+        m_yaml = re.match(r"([a-zA-Z0-9_]+)\s*:\s*(.+)$", line)
         if m_yaml:
             name = m_yaml.group(1)
             value = m_yaml.group(2).strip().rstrip(",;")
@@ -279,7 +284,17 @@ def validate_theme_content(text: str) -> ValidationReport:
         if not isinstance(val, str):
             continue
         refs = VAR_REF_RE.findall(val)
-        for r in refs:
+        for r, fallback in refs:
+            if '-' in r:
+                report["errors"].append(
+                    Error(
+                        code="VAR_REF_INVALID_CHAR",
+                        message=f"Variable reference --{r} contains invalid characters (hyphens are not allowed).",
+                        line=v.line,
+                        ref=r,
+                    )
+                )
+                continue
             if r not in declared:
                 # If meta extends present, demote to warning; otherwise error
                 if "extends" in report["meta"]:

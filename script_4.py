@@ -1,0 +1,160 @@
+# Create a new OBS theme based on the Dracula color palette.
+# This will be a complete .ovt theme file compatible with OBS Studio 30.2+
+
+dracula_colors = {
+    "background": "#282a36",
+    "current_line": "#44475a",
+    "foreground": "#f8f8f2",
+    "comment": "#6272a4",
+    "cyan": "#8be9fd",
+    "green": "#50fa7b",
+    "orange": "#ffb86c",
+    "pink": "#ff79c6",
+    "purple": "#bd93f9",
+    "red": "#ff5555",
+    "yellow": "#f1fa8c"
+}
+
+theme_content = f"""@OBSThemeMeta {{
+    name: 'Dracula';
+    id: 'com.dracula.theme';
+    extends: 'com.obsproject.Yami';
+    author: 'Dracula Theme';
+    dark: 'true';
+}}
+
+@OBSThemeVars {{
+    /* Dracula Color Palette */
+    --background: {dracula_colors['background']};
+    --current_line: {dracula_colors['current_line']};
+    --foreground: {dracula_colors['foreground']};
+    --comment: {dracula_colors['comment']};
+    --cyan: {dracula_colors['cyan']};
+    --green: {dracula_colors['green']};
+    --orange: {dracula_colors['orange']};
+    --pink: {dracula_colors['pink']};
+    --purple: {dracula_colors['purple']};
+    --red: {dracula_colors['red']};
+    --yellow: {dracula_colors['yellow']};
+
+    /* Semantic Color Variables */
+    --bg_window: var(--background);
+    --bg_base: var(--current_line);
+    --bg_surface: #3a3c4e;
+    --bg_surface_raised: #4e5066;
+    --bg_surface_hover: #5a5c72;
+    --bg_button: var(--current_line);
+    --bg_button_hover: #5a5c72;
+    --bg_button_pressed: #6b6d80;
+    --bg_button_checked: var(--purple);
+    --bg_button_disabled: var(--comment);
+
+    /* Text Colors */
+    --text_primary: var(--foreground);
+    --text_secondary: #e0e0e0;
+    --text_tertiary: #c0c0c0;
+    --text_disabled: var(--comment);
+    --text_link: var(--cyan);
+    --text_link_hover: #a0ffff;
+
+    /* Accent Colors */
+    --accent_primary: var(--purple);
+    --accent_secondary: var(--pink);
+    --accent_success: var(--green);
+    --accent_warning: var(--orange);
+    --accent_error: var(--red);
+    --accent_info: var(--cyan);
+
+    /* Border Colors */
+    --border_base: var(--comment);
+    --border_focus: var(--purple);
+    --border_hover: #7a88b8;
+    --border_pressed: #8a98c8;
+
+    /* Sizing Variables */
+    --border_radius: 8px;
+    --border_radius_small: 4px;
+    --border_radius_large: 12px;
+    --spacing_xs: 4px;
+    --spacing_sm: 8px;
+    --spacing_md: 12px;
+    --spacing_lg: 16px;
+    --spacing_xl: 24px;
+
+    /* Animation Variables */
+    --transition_fast: 150ms;
+    --transition_normal: 250ms;
+    --transition_slow: 350ms;
+}}
+
+/* Main Application Window */
+QMainWindow {{
+    background-color: var(--bg_window);
+    color: var(--text_primary);
+}}
+
+/* Dock Areas and Splitters */
+QDockWidget {{
+    background-color: var(--bg_base);
+    color: var(--text_primary);
+    border: 1px solid var(--border_base);
+    border-radius: var(--border_radius);
+}}
+
+QDockWidget::title {{
+    background-color: var(--bg_surface);
+    padding: var(--spacing_sm);
+    border-bottom: 1px solid var(--border_base);
+    font-weight: 600;
+}}
+
+QSplitter::handle {{
+    background-color: var(--border_base);
+}}
+
+QSplitter::handle:horizontal {{
+    width: 2px;
+}}
+
+QSplitter::handle:vertical {{
+    height: 2px;
+}}
+
+/* Buttons */
+QPushButton {{
+    background-color: var(--bg_button);
+    color: var(--text_primary);
+    border: 1px solid var(--border_base);
+    border-radius: var(--border_radius);
+    padding: var(--spacing_sm) var(--spacing_md);
+    font-weight: 500;
+    min-height: 20px;
+}}
+
+QPushButton:hover {{
+    background-color: var(--bg_button_hover);
+    border-color: var(--border_hover);
+}}
+
+QPushButton:pressed {{
+    background-color: var(--bg_button_pressed);
+    border-color: var(--border_pressed);
+}}
+
+QPushButton:checked {{
+    background-color: var(--bg_button_checked);
+    color: var(--foreground);
+    border-color: var(--accent_primary);
+}}
+
+QPushButton:disabled {{
+    background-color: var(--bg_button_disabled);
+    color: var(--text_disabled);
+    border-color: var(--border_base);
+}}
+"""
+
+with open('dracula_theme.ovt', 'w') as f:
+    f.write(theme_content)
+
+print("✅ Theme saved as 'dracula_theme.ovt'")

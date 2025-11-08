@@ -20,7 +20,7 @@ def main():
             reports.append({'name': t['name'], 'error': str(e)})
             continue
         rep = validate_theme_content(text)
-        reports.append({'name': t['name'], 'report': rep})
+        reports.append({'name': t['name'], 'report': rep.model_dump()})
     print(json.dumps({'validations': reports}))
 
 if __name__ == '__main__':
