@@ -536,7 +536,7 @@ def api_search():
     if not query:
         return jsonify({"error": "Missing query"}), 400
 
-    store_name_file = Path("app/file_search_store.txt")
+    store_name_file = APP_DIR / "file_search_store.txt"
     if not store_name_file.exists():
         return jsonify({"error": "File search store not found"}), 500
 
