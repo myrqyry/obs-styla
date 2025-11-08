@@ -1,4 +1,48 @@
+from pydantic import BaseModel, Field
+from typing import List, Dict, Optional, Union
 import re
+
+class Meta(BaseModel):
+    id: str
+    name: str
+    dark: bool
+    extends: Optional[str] = None
+
+class Var(BaseModel):
+    name: str
+    value: str
+    line: int
+    looks_like_color: bool
+    color_valid: Optional[bool] = None
+
+class Error(BaseModel):
+    code: str
+    message: str
+    line: Optional[int] = None
+    value: Optional[str] = None
+    field: Optional[str] = None
+    ref: Optional[str] = None
+
+class Warning(BaseModel):
+    code: str
+    message: str
+    line: Optional[int] = None
+    first_line: Optional[int] = None
+    name: Optional[str] = None
+    ref: Optional[str] = None
+    var: Optional[str] = None
+
+class Summary(BaseModel):
+    errors: int
+    warnings: int
+    vars_count: int
+
+class ValidationReport(BaseModel):
+    meta: Meta
+    vars: List[Var]
+    errors: List[Error]
+    warnings: List[Warning]
+    summary: Summary
 
 # More precise regex patterns
 HEX_RE = re.compile(r"^#(?:[0-9A-Fa-f]{3}){1,2}(?:[0-9A-Fa-f]{2})?$")
@@ -115,17 +159,12 @@ def _process_variable(name, value, line_no, declared, report):
     declared[name] = line_no
 
 
-def validate_theme_content(text: str) -> dict:
-    """Full validation pipeline for OBS theme files.
-
-    Produces a structured report with:
-      - meta: parsed metadata keys
-      - vars: list of parsed variables with type hints
-      - errors: fatal issues
-      - warnings: non-fatal suggestions
-      - summary counts
-    """
-    report = {"meta": {}, "vars": [], "errors": [], "warnings": [], "summary": {}}
+def validate_theme_content(text: str) -> ValidationReport:
+    """Full validation pipeline for OBS theme files."""
+    report = {
+        "meta": {"id": "default.id", "name": "Default Name", "dark": False},
+        "vars": [], "errors": [], "warnings": [], "summary": {}
+    }
 
     # --- find blocks (flexible parsing) ---
     meta_match = re.search(r"@OBSThemeMeta\s*\{([\s\S]*?)\}", text)
@@ -133,7 +172,7 @@ def validate_theme_content(text: str) -> dict:
 
     if not meta_match:
         report["errors"].append(
-            {"code": "META_BLOCK_MISSING", "message": "Missing @OBSThemeMeta section"}
+            Error(code="META_BLOCK_MISSING", message="Missing @OBSThemeMeta section")
         )
         meta_block = ""
     else:
@@ -141,13 +180,14 @@ def validate_theme_content(text: str) -> dict:
 
     if not vars_match:
         report["errors"].append(
-            {"code": "VARS_BLOCK_MISSING", "message": "Missing @OBSThemeVars section"}
+            Error(code="VARS_BLOCK_MISSING", message="Missing @OBSThemeVars section")
         )
         vars_block = ""
     else:
         vars_block = vars_match.group(1)
 
     # --- parse meta (key: value pairs, allow ' or " or bare words) ---
+    meta_data = {}
     for line in (meta_block or "").splitlines():
         line = line.strip().rstrip(",;")
         if not line or line.startswith("//") or line.startswith("/*"):
@@ -157,28 +197,30 @@ def validate_theme_content(text: str) -> dict:
             key = m.group(1)
             value = m.group(2) or m.group(3) or m.group(4) or ""
             value = value.strip()
-            report["meta"][key] = value
+            meta_data[key] = value
+
+    report["meta"] = meta_data
 
     # required meta keys
     for key in ("id", "name", "dark"):
         if key not in report["meta"]:
             report["errors"].append(
-                {
-                    "code": "META_FIELD_MISSING",
-                    "message": f"Missing metadata field: {key}",
-                    "field": key,
-                }
+                Error(
+                    code="META_FIELD_MISSING",
+                    message=f"Missing metadata field: {key}",
+                    field=key,
+                )
             )
 
     # id format
     if "id" in report["meta"]:
         if not ID_RE.match(report["meta"]["id"]):
             report["errors"].append(
-                {
-                    "code": "META_ID_INVALID",
-                    "message": f"Metadata 'id' does not match expected reverse-domain format: {report['meta']['id']}",
-                    "value": report["meta"]["id"],
-                }
+                Error(
+                    code="META_ID_INVALID",
+                    message=f"Metadata 'id' does not match expected reverse-domain format: {report['meta']['id']}",
+                    value=report["meta"]["id"],
+                )
             )
 
     # normalize dark
@@ -188,11 +230,11 @@ def validate_theme_content(text: str) -> dict:
             report["meta"]["dark"] = d == "true"
         else:
             report["errors"].append(
-                {
-                    "code": "META_DARK_INVALID",
-                    "message": f"Metadata 'dark' must be true/false: {report['meta']['dark']}",
-                    "value": report["meta"]["dark"],
-                }
+                Error(
+                    code="META_DARK_INVALID",
+                    message=f"Metadata 'dark' must be true/false: {report['meta']['dark']}",
+                    value=report["meta"]["dark"],
+                )
             )
 
     # --- parse vars block ---
@@ -223,17 +265,17 @@ def validate_theme_content(text: str) -> dict:
         # unrecognized line inside vars
         if line:
             report["errors"].append(
-                {
-                    "code": "VARS_PARSE_ERROR",
-                    "message": f"Could not parse line in @OBSThemeVars: {line}",
-                    "line": line_no,
-                    "raw": line,
-                }
+                Error(
+                    code="VARS_PARSE_ERROR",
+                    message=f"Could not parse line in @OBSThemeVars: {line}",
+                    line=line_no
+                )
             )
 
     # --- resolve var references var(--x) -> check existence ---
-    for v in report["vars"]:
-        val = v.get("value")
+    for v_dict in report["vars"]:
+        v = Var(**v_dict)
+        val = v.value
         if not isinstance(val, str):
             continue
         refs = VAR_REF_RE.findall(val)
@@ -242,21 +284,21 @@ def validate_theme_content(text: str) -> dict:
                 # If meta extends present, demote to warning; otherwise error
                 if "extends" in report["meta"]:
                     report["warnings"].append(
-                        {
-                            "code": "VAR_REF_UNDEFINED",
-                            "message": f"Variable {v.get('name')} references undefined var --{r} (may be provided by extends)",
-                            "line": v.get("line"),
-                            "ref": r,
-                        }
+                        Warning(
+                            code="VAR_REF_UNDEFINED",
+                            message=f"Variable {v.name} references undefined var --{r} (may be provided by extends)",
+                            line=v.line,
+                            ref=r,
+                        )
                     )
                 else:
                     report["errors"].append(
-                        {
-                            "code": "VAR_REF_UNDEFINED",
-                            "message": f"Variable {v.get('name')} references undefined var --{r}",
-                            "line": v.get("line"),
-                            "ref": r,
-                        }
+                        Error(
+                            code="VAR_REF_UNDEFINED",
+                            message=f"Variable {v.name} references undefined var --{r}",
+                            line=v.line,
+                            ref=r,
+                        )
                     )
 
     # --- required semantic variables (configurable) ---
@@ -264,20 +306,20 @@ def validate_theme_content(text: str) -> dict:
     for rv in REQUIRED_VARS:
         if rv not in present:
             report["warnings"].append(
-                {
-                    "code": "VAR_REQUIRED_MISSING",
-                    "message": f"Recommended semantic variable missing: {rv}",
-                    "var": rv,
-                }
+                Warning(
+                    code="VAR_REQUIRED_MISSING",
+                    message=f"Recommended semantic variable missing: {rv}",
+                    var=rv,
+                )
             )
 
     # --- duplicate theme id detection will be done at caller level across files ---
 
     # summary
-    report["summary"] = {
-        "errors": len(report["errors"]),
-        "warnings": len(report["warnings"]),
-        "vars_count": len(report["vars"]),
-    }
+    report["summary"] = Summary(
+        errors=len(report["errors"]),
+        warnings=len(report["warnings"]),
+        vars_count=len(report["vars"]),
+    )
 
-    return report
+    return ValidationReport(**report)

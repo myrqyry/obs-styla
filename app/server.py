@@ -36,6 +36,8 @@ from flask_limiter.util import get_remote_address
 from werkzeug.datastructures import FileStorage
 
 import logging.config
+import google.generativeai as genai
+from google.generativeai import types
 
 LOGGING_CONFIG = {
     'version': 1,
@@ -158,7 +160,10 @@ def find_theme_files() -> List[dict]:
             loop.close()
 
 
-from validation import validate_theme_content
+from validation import validate_theme_content, ValidationReport
+from pydantic import ValidationError
+from werkzeug.exceptions import BadRequest, NotFound, Forbidden
+import traceback
 
 def validate_filename(filename: str) -> bool:
     """Validate filename for security and format."""
@@ -460,31 +465,31 @@ def api_validate():
     """Validate all generated theme files and return a report."""
     themes = find_theme_files()
     reports = []
-    # collect id->files map for duplicate detection
     id_map: dict = {}
     for t in themes:
         p = ROOT / t["path"]
         try:
             text = p.read_text(encoding='utf-8')
+            report_model = validate_theme_content(text)
+            reports.append({"name": t["name"], "report": report_model.dict()})
+            mid = report_model.meta.id
+            if mid:
+                id_map.setdefault(mid, []).append(t["name"])
+        except ValidationError as e:
+            reports.append({"name": t["name"], "error": f"Validation model error: {e}"})
         except Exception as e:
-            reports.append({"name": t["name"], "error": f"Could not read file: {e}"})
-            continue
-        rep = validate_theme_content(text)
-        reports.append({"name": t["name"], "report": rep})
-        # gather ids
-        mid = rep.get("meta", {}).get("id")
-        if mid:
-            id_map.setdefault(mid, []).append(t["name"])
+            reports.append({"name": t["name"], "error": f"Could not read or validate file: {e}"})
 
     # detect duplicates
     duplicate_ids = []
     for mid, files in id_map.items():
         if len(files) > 1:
             duplicate_ids.append({"id": mid, "files": files})
-            # add warnings to each file report
             for r in reports:
-                if r["name"] in files:
-                    r["report"].setdefault("warnings", []).append({"code": "DUPLICATE_THEME_ID", "message": f"Theme id {mid} used by multiple files", "files": files})
+                if r["name"] in files and "report" in r:
+                    r["report"]["warnings"].append(
+                        {"code": "DUPLICATE_THEME_ID", "message": f"Theme id {mid} used by multiple files"}
+                    )
 
     return jsonify({"validations": reports, "duplicate_ids": duplicate_ids})
 
@@ -515,6 +520,47 @@ def health_check():
     status_code = 200 if checks["status"] == "healthy" else 503
     return jsonify(checks), status_code
 
+@app.route("/api/search", methods=["POST"])
+@handle_errors
+def api_search():
+    """Performs a semantic search on the uploaded theme files."""
+    if not os.environ.get("GEMINI_API_KEY"):
+        logger.warning("GEMINI_API_KEY not set. Search functionality is disabled.")
+        return jsonify({"error": "Search is not configured"}), 501
+
+    if not request.is_json:
+        return jsonify({"error": "Content-Type must be application/json"}), 400
+
+    data = request.get_json()
+    query = data.get("query")
+    if not query:
+        return jsonify({"error": "Missing query"}), 400
+
+    store_name_file = Path("app/file_search_store.txt")
+    if not store_name_file.exists():
+        return jsonify({"error": "File search store not found"}), 500
+
+    store_name = store_name_file.read_text().strip()
+
+    try:
+        response = genai.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=query,
+            config=types.GenerateContentConfig(
+                tools=[
+                    types.Tool(
+                        file_search=types.FileSearch(
+                            file_search_store_names=[store_name],
+                        )
+                    )
+                ]
+            )
+        )
+        return jsonify({"response": response.text})
+    except Exception as e:
+        logger.error(f"Error during file search: {e}")
+        return jsonify({"error": "Failed to perform search"}), 500
+
 
 @app.after_request
 def add_security_headers(response):
@@ -534,5 +580,26 @@ def limit_remote_addr():
     pass
 
 
+def run_upload_script():
+    """Runs the theme upload script in a separate process."""
+    try:
+        subprocess.run(
+            [sys.executable, str(APP_DIR / "upload_themes.py")],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        logger.info("Theme upload script completed successfully.")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Theme upload script failed: {e.stderr}")
+
 if __name__ == "__main__":
+    if os.environ.get("GEMINI_API_KEY"):
+        genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+        # Run the upload script in a background thread
+        upload_thread = threading.Thread(target=run_upload_script, daemon=True)
+        upload_thread.start()
+    else:
+        logger.warning("GEMINI_API_KEY not set. Search functionality will be disabled.")
+
     app.run(host=config.HOST, port=config.PORT, debug=config.DEBUG)
