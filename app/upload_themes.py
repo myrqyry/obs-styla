@@ -36,7 +36,7 @@ def upload_themes():
     # Upload and import files
     for file_path in Path(".").glob("*.*"):
         if file_path.suffix in [".ovt", ".obt", ".json"]:
-            print(f"Uploading {file_path.name}...")
+            print(f"Uploading {file_path.name}...") # Consider replacing with logging.info()
             operation = genai.file_search_stores.upload_to_file_search_store(
                 file=str(file_path),
                 file_search_store_name=file_search_store.name,
