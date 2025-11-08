@@ -407,6 +407,40 @@ def api_theme_meta(filename: str):
             return jsonify({"error": f"Error updating metadata: {e}"}), 500
 
 
+@app.route("/api/convert", methods=["POST"])
+@handle_errors
+def api_convert():
+    """Convert JSON to .ovt theme file."""
+    if not request.is_json:
+        return jsonify({"error": "Content-Type must be application/json"}), 400
+
+    data = request.get_json()
+    if not data or "json" not in data:
+        return jsonify({"error": "Invalid JSON payload"}), 400
+
+    try:
+        json_data = json.loads(data["json"])
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid JSON format"}), 400
+
+    # Basic validation of the JSON structure
+    if "meta" not in json_data or "vars" not in json_data:
+        return jsonify({"error": "Missing 'meta' or 'vars' in JSON"}), 400
+
+    # Convert to .ovt format
+    ovt_content = "@OBSThemeMeta {\n"
+    for key, value in json_data["meta"].items():
+        ovt_content += f"    {key}: {json.dumps(str(value))};\n"
+    ovt_content += "}\n\n"
+
+    ovt_content += "@OBSThemeVars {\n"
+    for key, value in json_data["vars"].items():
+        ovt_content += f"    --{key}: {value};\n"
+    ovt_content += "}\n"
+
+    return jsonify({"ovt": ovt_content})
+
+
 @app.route("/api/generate", methods=["POST"])
 @limiter.limit("5 per minute")
 @handle_errors

@@ -3,6 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import axios from 'axios';
 import MetaEditor from './MetaEditor';
+import Converter from './Converter';
+import { ReactComponent as DeleteIcon } from './assets/delete.svg';
+import { ReactComponent as DuplicateIcon } from './assets/duplicate.svg';
+import { ReactComponent as EditIcon } from './assets/edit.svg';
+import { ReactComponent as PreviewIcon } from './assets/preview.svg';
 import './style.css';
 
 const App = () => {
@@ -127,6 +132,7 @@ const App = () => {
         <nav className="tabs">
           <button onClick={() => setActiveTab('gen')} className={activeTab === 'gen' ? 'active' : ''}>Generator</button>
           <button onClick={() => setActiveTab('val')} className={activeTab === 'val' ? 'active' : ''}>Validator</button>
+          <button onClick={() => setActiveTab('conv')} className={activeTab === 'conv' ? 'active' : ''}>Converter</button>
         </nav>
       </header>
       <main>
@@ -142,10 +148,10 @@ const App = () => {
               {themes.map((t) => (
                 <li key={t.name}>
                   <a href={`/api/themes/${encodeURIComponent(t.name)}`} target="_blank">{t.name} ({t.size} bytes)</a>
-                  <button onClick={() => handleDelete(t.name)}>Delete</button>
-                  <button onClick={() => handleDuplicate(t.name)}>Duplicate</button>
-                  <button onClick={() => handleEdit(t.name)}>Edit</button>
-                  <button onClick={() => window.open(`/api/themes/${encodeURIComponent(t.name)}`, '_blank')}>Preview</button>
+                  <button onClick={() => handleDelete(t.name)}><DeleteIcon /></button>
+                  <button onClick={() => handleDuplicate(t.name)}><DuplicateIcon /></button>
+                  <button onClick={() => handleEdit(t.name)}><EditIcon /></button>
+                  <button onClick={() => window.open(`/api/themes/${encodeURIComponent(t.name)}`, '_blank')}><PreviewIcon /></button>
                 </li>
               ))}
             </ul>
@@ -157,6 +163,11 @@ const App = () => {
               <button onClick={handleValidate}>Run Validation</button>
             </div>
             <div className="panel-inner" dangerouslySetInnerHTML={{ __html: valOutput }}></div>
+          </section>
+        )}
+        {activeTab === 'conv' && (
+          <section id="conv" className="panel">
+            <Converter />
           </section>
         )}
       </main>
