@@ -9,7 +9,7 @@ genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
 def get_or_create_file_search_store():
     """Gets or creates a file search store."""
-    store_name_file = Path("app/file_search_store.txt")
+    store_name_file = Path(__file__).resolve().parent / "file_search_store.txt"
     if store_name_file.exists():
         store_name = store_name_file.read_text().strip()
         try:
