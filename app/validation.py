@@ -284,7 +284,7 @@ def validate_theme_content(text: str) -> ValidationReport:
         if not isinstance(val, str):
             continue
         refs = VAR_REF_RE.findall(val)
-        for r, _ in refs:
+        for r, fallback in refs:
             if '-' in r:
                 report["errors"].append(
                     Error(

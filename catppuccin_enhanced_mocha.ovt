@@ -370,7 +370,7 @@ QProgressBar {
 
 QProgressBar::chunk {
     background-color: var(--accent_primary);
-    border-radius: calc(var(--border_radius) - 1px);
+    border-radius: 7px;
 }
 
 /* Scroll Bars */
