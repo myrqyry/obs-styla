@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import path from 'path'
+import svgr from 'vite-plugin-svgr'
 
 // Assumptions:
 // - During development we proxy `/api` requests to a backend running locally.
@@ -43,5 +44,6 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, 'src'),
       },
     },
+    plugins: [svgr()],
   }
 })
