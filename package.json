@@ -2,8 +2,9 @@
   "name": "obs-styla",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"pnpm --prefix frontend dev\" \"pnpm --prefix backend dev\"",
-    "install-all": "pnpm install && (cd frontend && pnpm install) && (cd backend && pnpm install)"
+    "dev": "concurrently \"pnpm --prefix client dev\" \"python server/server.py\"",
+    "build": "pnpm --prefix client build",
+    "install-deps": "pnpm install && pnpm --prefix client install && pip install -r server/requirements.txt"
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
