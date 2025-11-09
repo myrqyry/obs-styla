@@ -98,8 +98,8 @@ const App: React.FC = () => {
   };
 
    const handleDuplicate = async (themeName: string): Promise<void> => {
-    const baseName = themeName.split('.')[0];
-    const extension = themeName.split('.').pop();
+    const lastDotIndex = themeName.lastIndexOf('.');
+    const baseName = lastDotIndex !== -1 ? themeName.substring(0, lastDotIndex) : themeName;
     const newName = prompt(
       'Enter a new name for the duplicated theme:',
        `${baseName}-copy.${extension}`
