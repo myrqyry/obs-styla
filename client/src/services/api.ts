@@ -46,7 +46,7 @@ class ApiService {
       (error: AxiosError) => {
         if (error.response) {
           // Server responded with error
-          const message = (error.response.data as any)?.error || error.message;
+          const message = (error.response.data as { error: string })?.error || error.message;
           throw new Error(message);
         } else if (error.request) {
           // Request made but no response
