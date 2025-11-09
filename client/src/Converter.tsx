@@ -6,7 +6,7 @@ import './Converter.css';
 interface JsonValidationResult {
   valid: boolean;
   error?: string;
-  lineNumber?: number;
+  errorPosition?: number;
 }
 
 const EXAMPLE_TEMPLATE = `{
