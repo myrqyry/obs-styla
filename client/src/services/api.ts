@@ -65,7 +65,7 @@ class ApiService {
     return data.themes || [];
   }
 
-  async downloadTheme(filename: string): string {
+  getThemeDownloadUrl(filename: string): string {
     return `/api/themes/${encodeURIComponent(filename)}`;
   }
 
