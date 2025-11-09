@@ -131,14 +131,14 @@ const MetaEditor: React.FC<MetaEditorProps> = ({
     }
   };
 
-  const handleCancel = (): void => {
+  const handleCancel = useCallback((): void => {
     if (JSON.stringify(meta) !== JSON.stringify(initialMeta)) {
       if (!confirm('You have unsaved changes. Are you sure you want to close?')) {
         return;
       }
     }
     onClose();
-  };
+  }, [meta, initialMeta, onClose]);
 
   // Close on Escape key
   useEffect(() => {
@@ -150,7 +150,7 @@ const MetaEditor: React.FC<MetaEditorProps> = ({
 
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [meta, initialMeta]);
+  }, [handleCancel]);
 
   return (
     <div className="modal-overlay" onClick={handleCancel}>
