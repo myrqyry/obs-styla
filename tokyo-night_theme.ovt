@@ -1,24 +1,24 @@
 @OBSThemeMeta {{
-    name: 'Dracula Theme';
-    id: 'com.textmate.dracula.theme';
+    name: 'Tokyo Night';
+    id: 'com.textmate.tokyonight.theme';
     extends: 'com.obsproject.Yami';
     author: 'TextMate Theme';
     dark: 'true';
 }}
 
 @OBSThemeVars {{
-    /* Dracula Theme Color Palette */
-    --background: #282A36;
-    --current_line: #44475A;
-    --foreground: #F8F8F2;
-    --comment: #6272A4;
-    --cyan: #8be9fd;
-    --green: #50FA7B80;
-    --orange: #8BE9FD;
-    --pink: #8BE9FD80;
-    --purple: #FF555580;
-    --red: #FF5555;
-    --yellow: #8BE9FD;
+    /* Tokyo Night Color Palette */
+    --background: #1a1b26;
+    --current_line: #515c7e4d;
+    --foreground: #a9b1d6;
+    --comment: #363b54;
+    --cyan: #0da0ba;
+    --green: #164846;
+    --orange: #e0af68;
+    --pink: #394b70;
+    --purple: #823c41;
+    --red: #db4b4b;
+    --yellow: #e0af68;
 
     /* Semantic Color Variables */
     --bg_window: var(--background);

@@ -1,12 +1,20 @@
 {
-  "name": "obs-styla",
+  "name": "obs-styla-monorepo",
   "private": true,
+  "packageManager": "pnpm@10.20.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "concurrently \"pnpm --prefix client dev\" \"python server/server.py\"",
-    "build": "pnpm --prefix client build",
-    "install-deps": "pnpm install && pnpm --prefix client install && pip install -r server/requirements.txt"
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "install-deps": "pnpm install"
   },
   "devDependencies": {
-    "concurrently": "^8.2.0"
+    "concurrently": "^8.2.0",
+    "turbo": "^2.6.1"
   }
 }

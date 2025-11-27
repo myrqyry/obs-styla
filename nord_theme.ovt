@@ -1,24 +1,24 @@
 @OBSThemeMeta {{
-    name: 'Dracula Theme';
-    id: 'com.textmate.dracula.theme';
+    name: 'Nord';
+    id: 'com.textmate.nord.theme';
     extends: 'com.obsproject.Yami';
     author: 'TextMate Theme';
     dark: 'true';
 }}
 
 @OBSThemeVars {{
-    /* Dracula Theme Color Palette */
-    --background: #282A36;
-    --current_line: #44475A;
-    --foreground: #F8F8F2;
-    --comment: #6272A4;
+    /* Nord Color Palette */
+    --background: #2e3440;
+    --current_line: #434c5ecc;
+    --foreground: #d8dee9;
+    --comment: #4c566a;
     --cyan: #8be9fd;
-    --green: #50FA7B80;
-    --orange: #8BE9FD;
-    --pink: #8BE9FD80;
-    --purple: #FF555580;
-    --red: #FF5555;
-    --yellow: #8BE9FD;
+    --green: #a3be8c;
+    --orange: #ebcb8b;
+    --pink: #ebcb8b;
+    --purple: #bf616a;
+    --red: #bf616a;
+    --yellow: #ebcb8b;
 
     /* Semantic Color Variables */
     --bg_window: var(--background);

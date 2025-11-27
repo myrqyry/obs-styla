@@ -1,24 +1,24 @@
 @OBSThemeMeta {{
-    name: 'Dracula Theme';
-    id: 'com.textmate.dracula.theme';
+    name: 'GitHub Light';
+    id: 'com.textmate.githublight.theme';
     extends: 'com.obsproject.Yami';
     author: 'TextMate Theme';
     dark: 'true';
 }}
 
 @OBSThemeVars {{
-    /* Dracula Theme Color Palette */
-    --background: #282A36;
-    --current_line: #44475A;
-    --foreground: #F8F8F2;
-    --comment: #6272A4;
+    /* GitHub Light Color Palette */
+    --background: #fff;
+    --current_line: #0366d625;
+    --foreground: #24292e;
+    --comment: #1b1f234d;
     --cyan: #8be9fd;
-    --green: #50FA7B80;
-    --orange: #8BE9FD;
-    --pink: #8BE9FD80;
-    --purple: #FF555580;
-    --red: #FF5555;
-    --yellow: #8BE9FD;
+    --green: #28a745;
+    --orange: #f9c513;
+    --pink: #2188ff;
+    --purple: #d73a49;
+    --red: #cb2431;
+    --yellow: #f9c513;
 
     /* Semantic Color Variables */
     --bg_window: var(--background);

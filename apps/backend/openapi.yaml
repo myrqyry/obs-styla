@@ -1,0 +1,305 @@
+openapi: 3.0.3
+info:
+  title: OBS Styla API
+  version: 1.0.0
+  description: API for OBS theme management and generation
+servers:
+  - url: http://localhost:3001/api
+    description: Development server
+paths:
+  /themes:
+    get:
+      summary: Get all themes
+      responses:
+        '200':
+          description: List of themes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemesResponse'
+  /themes/{filename}:
+    delete:
+      summary: Delete a theme
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Theme deleted
+  /themes/{filename}/duplicate:
+    post:
+      summary: Duplicate a theme
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_name:
+                  type: string
+              required:
+                - new_name
+      responses:
+        '200':
+          description: Theme duplicated
+  /themes/{filename}/meta:
+    get:
+      summary: Get theme metadata
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Theme metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeMeta'
+    post:
+      summary: Update theme metadata
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                meta:
+                  $ref: '#/components/schemas/ThemeMeta'
+              required:
+                - meta
+      responses:
+        '200':
+          description: Metadata updated
+  /generate:
+    post:
+      summary: Generate themes
+      responses:
+        '200':
+          description: Generation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateResponse'
+  /validate:
+    get:
+      summary: Validate themes
+      responses:
+        '200':
+          description: Validation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+  /convert:
+    post:
+      summary: Convert JSON to OVT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConvertRequest'
+      responses:
+        '200':
+          description: Conversion result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConvertResponse'
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service is healthy
+components:
+  schemas:
+    Theme:
+      type: object
+      properties:
+        name:
+          type: string
+        path:
+          type: string
+        size:
+          type: integer
+        modified:
+          type: integer
+      required:
+        - name
+        - path
+        - size
+        - modified
+    ThemeMeta:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        author:
+          type: string
+        version:
+          type: string
+        dark:
+          type: boolean
+      required:
+        - id
+        - name
+        - author
+        - version
+        - dark
+    ValidationError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        line:
+          type: integer
+      required:
+        - code
+        - message
+    ValidationWarning:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        line:
+          type: integer
+      required:
+        - code
+        - message
+    ValidationReport:
+      type: object
+      properties:
+        summary:
+          type: object
+          properties:
+            errors:
+              type: integer
+            warnings:
+              type: integer
+          required:
+            - errors
+            - warnings
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationWarning'
+      required:
+        - summary
+        - errors
+        - warnings
+    ThemeValidation:
+      type: object
+      properties:
+        name:
+          type: string
+        report:
+          $ref: '#/components/schemas/ValidationReport'
+        error:
+          type: string
+    ThemesResponse:
+      type: object
+      properties:
+        themes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Theme'
+      required:
+        - themes
+    GenerationResult:
+      type: object
+      properties:
+        script:
+          type: string
+        returncode:
+          type: integer
+        stdout:
+          type: string
+        stderr:
+          type: string
+        status:
+          type: string
+        error:
+          type: string
+    GenerateResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/GenerationResult'
+        themes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Theme'
+      required:
+        - results
+        - themes
+    ValidationResponse:
+      type: object
+      properties:
+        validations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ThemeValidation'
+        duplicate_ids:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              files:
+                type: array
+                items:
+                  type: string
+            required:
+              - id
+              - files
+      required:
+        - validations
+        - duplicate_ids
+    ConvertRequest:
+      type: object
+      properties:
+        json:
+          type: string
+      required:
+        - json
+    ConvertResponse:
+      type: object
+      properties:
+        ovt:
+          type: string
+      required:
+        - ovt
