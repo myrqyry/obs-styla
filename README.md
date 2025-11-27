@@ -57,6 +57,7 @@ API endpoints:
 
 Additional endpoints:
 - `GET /api/validate` — run basic validation on generated theme files and return a report indicating missing metadata/sections and a simple variable analysis
+- `POST /api/search` — perform a semantic search on the content of the theme files. Expects a JSON body with a "query" field.
 
 Notes:
 - The existing Python scripts already generate `.ovt` and `.obt` files in the repository root.
