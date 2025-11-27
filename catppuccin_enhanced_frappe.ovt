@@ -1,0 +1,267 @@
+@OBSThemeMeta {
+    name: 'Catppuccin Enhanced Frappe';
+    id: 'com.catppuccin.enhanced.frappe';
+    extends: 'com.obsproject.Yami';
+    author: 'Enhanced by AI Assistant';
+    dark: 'true';
+}
+
+@OBSThemeVars {
+    /* Catppuccin Frappe Color Palette */
+    --rosewater: #f2d5cf;
+    --flamingo: #eebebe;
+    --pink: #f4b8e4;
+    --mauve: #ca9ee6;
+    --red: #e78284;
+    --maroon: #ea999c;
+    --peach: #ef9f76;
+    --yellow: #e5c890;
+    --green: #a6d189;
+    --teal: #81c8be;
+    --sky: #99d1db;
+    --sapphire: #85c1dc;
+    --blue: #8caaee;
+    --lavender: #babbf1;
+    --text: #c6d0f5;
+    --subtext1: #b5bfe2;
+    --subtext0: #a5adce;
+    --overlay2: #949cbb;
+    --overlay1: #838ba7;
+    --overlay0: #737994;
+    --surface2: #626880;
+    --surface1: #51576d;
+    --surface0: #414559;
+    --base: #303446;
+    --mantle: #292c3c;
+    --crust: #232634;
+    
+    /* Semantic Color Variables */
+    --bg_window: var(--base);
+    --bg_base: var(--mantle);
+    --bg_surface: var(--surface0);
+    --bg_surface_raised: var(--surface1);
+    --bg_surface_hover: var(--surface2);
+    --bg_button: var(--surface0);
+    --bg_button_hover: var(--surface1);
+    --bg_button_pressed: var(--surface2);
+    --bg_button_checked: var(--mauve);
+    --bg_button_disabled: var(--overlay0);
+    
+    /* Text Colors */
+    --text_primary: var(--text);
+    --text_secondary: var(--subtext1);
+    --text_tertiary: var(--subtext0);
+    --text_disabled: var(--overlay1);
+    --text_link: var(--blue);
+    --text_link_hover: var(--sky);
+    
+    /* Accent Colors */
+    --accent_primary: var(--mauve);
+    --accent_secondary: var(--lavender);
+    --accent_success: var(--green);
+    --accent_warning: var(--yellow);
+    --accent_error: var(--red);
+    --accent_info: var(--blue);
+    
+    /* Border Colors */
+    --border_base: var(--overlay0);
+    --border_focus: var(--mauve);
+    --border_hover: var(--overlay1);
+    --border_pressed: var(--overlay2);
+    
+    /* Sizing Variables */
+    --border_radius: 8px;
+    --border_radius_small: 4px;
+    --border_radius_large: 12px;
+    --spacing_xs: 4px;
+    --spacing_sm: 8px;
+    --spacing_md: 12px;
+    --spacing_lg: 16px;
+    --spacing_xl: 24px;
+    
+    /* Animation Variables */
+    --transition_fast: 150ms;
+    --transition_normal: 250ms;
+    --transition_slow: 350ms;
+}
+
+/* Main Application Window */
+QMainWindow {
+    background-color: var(--bg_window);
+    color: var(--text_primary);
+}
+
+/* Dock Areas and Splitters */
+QDockWidget {
+    background-color: var(--bg_base);
+    color: var(--text_primary);
+    border: 1px solid var(--border_base);
+    border-radius: var(--border_radius);
+}
+
+QDockWidget::title {
+    background-color: var(--bg_surface);
+    padding: var(--spacing_sm);
+    border-bottom: 1px solid var(--border_base);
+    font-weight: 600;
+}
+
+/* Buttons - Enhanced with flavor-specific styling */
+QPushButton {
+    background-color: var(--bg_button);
+    color: var(--text_primary);
+    border: 1px solid var(--border_base);
+    border-radius: var(--border_radius);
+    padding: var(--spacing_sm) var(--spacing_md);
+    font-weight: 500;
+    min-height: 20px;
+    transition: all var(--transition_fast) ease;
+}
+
+QPushButton:hover {
+    background-color: var(--bg_button_hover);
+    border-color: var(--border_hover);
+    transform: translateY(-1px);
+}
+
+QPushButton:pressed {
+    background-color: var(--bg_button_pressed);
+    border-color: var(--border_pressed);
+    transform: translateY(0px);
+}
+
+QPushButton:checked {
+    background-color: var(--bg_button_checked);
+    color: var(--base);
+    border-color: var(--accent_primary);
+    box-shadow: 0 0 8px var(--accent_primary);
+}
+
+/* Recording/Streaming Indicators with Catppuccin colors */
+QPushButton[themeID="recordButton"] {
+    background-color: var(--red);
+    color: var(--base);
+    border-color: var(--red);
+}
+
+QPushButton[themeID="recordButton"]:hover {
+    background-color: var(--maroon);
+    border-color: var(--maroon);
+    box-shadow: 0 0 12px var(--red);
+}
+
+QPushButton[themeID="streamButton"] {
+    background-color: var(--blue);
+    color: var(--base);
+    border-color: var(--blue);
+}
+
+QPushButton[themeID="streamButton"]:hover {
+    background-color: var(--sapphire);
+    border-color: var(--sapphire);
+    box-shadow: 0 0 12px var(--blue);
+}
+
+QPushButton[themeID="vcamButton"] {
+    background-color: var(--green);
+    color: var(--base);
+    border-color: var(--green);
+}
+
+QPushButton[themeID="vcamButton"]:hover {
+    background-color: var(--teal);
+    border-color: var(--teal);
+    box-shadow: 0 0 12px var(--green);
+}
+
+QPushButton[themeID="replayBufferButton"] {
+    background-color: var(--yellow);
+    color: var(--base);
+    border-color: var(--yellow);
+}
+
+QPushButton[themeID="replayBufferButton"]:hover {
+    background-color: var(--peach);
+    border-color: var(--peach);
+    box-shadow: 0 0 12px var(--yellow);
+}
+
+/* Input Fields */
+QLineEdit, QTextEdit, QPlainTextEdit {
+    background-color: var(--bg_surface);
+    color: var(--text_primary);
+    border: 1px solid var(--border_base);
+    border-radius: var(--border_radius);
+    padding: var(--spacing_sm);
+    selection-background-color: var(--accent_primary);
+    selection-color: var(--base);
+}
+
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {
+    border-color: var(--border_focus);
+    background-color: var(--bg_surface_raised);
+    box-shadow: 0 0 6px var(--accent_primary);
+}
+
+/* Volume Controls with Catppuccin colors */
+VolumeMeter {
+    qproperty-backgroundNominalColor: var(--green);
+    qproperty-backgroundWarningColor: var(--yellow);
+    qproperty-backgroundErrorColor: var(--red);
+    qproperty-foregroundNominalColor: var(--teal);
+    qproperty-foregroundWarningColor: var(--peach);
+    qproperty-foregroundErrorColor: var(--maroon);
+    qproperty-magnitudeColor: var(--text_primary);
+    qproperty-majorTickColor: var(--text_secondary);
+    qproperty-minorTickColor: var(--text_tertiary);
+}
+
+/* Source and Scene Lists */
+#sources QListWidget::item:selected, #scenes QListWidget::item:selected {
+    background-color: var(--accent_primary);
+    color: var(--base);
+    border-radius: var(--border_radius_small);
+}
+
+#sources QListWidget::item:hover:!selected, #scenes QListWidget::item:hover:!selected {
+    background-color: var(--bg_surface_hover);
+    border-radius: var(--border_radius_small);
+}
+
+/* Menu styling */
+QMenu {
+    background-color: var(--bg_surface_raised);
+    color: var(--text_primary);
+    border: 1px solid var(--border_base);
+    border-radius: var(--border_radius);
+    padding: var(--spacing_xs);
+}
+
+QMenu::item:selected {
+    background-color: var(--accent_primary);
+    color: var(--base);
+    border-radius: var(--border_radius_small);
+}
+
+/* Scrollbars */
+QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover {
+    background-color: var(--overlay1);
+}
+
+QScrollBar::handle:vertical:pressed, QScrollBar::handle:horizontal:pressed {
+    background-color: var(--overlay2);
+}
+
+/* Tab styling */
+QTabBar::tab:selected {
+    background-color: var(--bg_base);
+    color: var(--accent_primary);
+    font-weight: 600;
+    border-bottom-color: var(--accent_primary);
+}
+
+/* Status indicators */
+QLabel[class="error"] { color: var(--red); }
+QLabel[class="warning"] { color: var(--yellow); }
+QLabel[class="success"] { color: var(--green); }
+QLabel[class="info"] { color: var(--blue); }
